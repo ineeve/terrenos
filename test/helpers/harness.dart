@@ -51,32 +51,23 @@ class Harness {
 
 const onboarded = AppSettings(onboardingComplete: true);
 
-/// One freguesia around the Coimbra test parcels.
+AdminArea _area(AreaKind kind, String name) => AdminArea(
+  kind: kind,
+  name: name,
+  concelho: kind == AreaKind.distrito ? null : 'Coimbra',
+  distrito: 'Coimbra',
+  bounds: (minLon: -8.5, minLat: 40.1, maxLon: -8.3, maxLat: 40.3),
+  parts: [
+    [
+      Float64List.fromList([-8.5, 40.1, -8.3, 40.1, -8.3, 40.3, -8.5, 40.3]),
+    ],
+  ],
+);
+
+/// One freguesia, concelho and distrito around the Coimbra test parcels.
 final testCaop = Caop(
   edition: 'TEST',
-  freguesias: [
-    AdminArea(
-      kind: AreaKind.freguesia,
-      name: 'Santa Clara e Castelo Viegas',
-      concelho: 'Coimbra',
-      distrito: 'Coimbra',
-      bounds: (minLon: -8.5, minLat: 40.1, maxLon: -8.3, maxLat: 40.3),
-      parts: [
-        [
-          Float64List.fromList([
-            -8.5,
-            40.1,
-            -8.3,
-            40.1,
-            -8.3,
-            40.3,
-            -8.5,
-            40.3,
-          ]),
-        ],
-      ],
-    ),
-  ],
-  concelhos: const [],
-  distritos: const [],
+  freguesias: [_area(AreaKind.freguesia, 'Santa Clara e Castelo Viegas')],
+  concelhos: [_area(AreaKind.concelho, 'Coimbra')],
+  distritos: [_area(AreaKind.distrito, 'Coimbra')],
 );

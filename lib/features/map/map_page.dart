@@ -3,14 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderFamily;
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/app/router.dart';
+import 'package:terrenos/core/caop/caop.dart';
 import 'package:terrenos/core/format/area_format.dart';
+import 'package:terrenos/core/format/text.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/geometry/validation.dart';
 import 'package:terrenos/core/map/imagery.dart';
+import 'package:terrenos/core/model/documents.dart';
+import 'package:terrenos/core/model/identifiers.dart';
 import 'package:terrenos/core/properties/location.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
@@ -35,7 +40,7 @@ class ImagerySourceController extends Notifier<ImagerySource> {
 
 /// The map tab (SPEC.md §3.2). Properties, location and offline areas are
 /// added in later tasks (PLAN.md M1–M2).
-class MapPage extends ConsumerWidget {
+class MapPage extends ConsumerStatefulWidget {
   const new({super.key});
 
   /// Mainland Portugal with room around it for border parcels.
@@ -51,13 +56,55 @@ class MapPage extends ConsumerWidget {
   );
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MapPage> createState() => _MapPageState();
+}
+
+class _MapPageState extends ConsumerState<MapPage> {
+  final _controller = MapController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _search() async {
+    final target = await showSearch<Bounds?>(
+      context: context,
+      delegate: MapSearchDelegate(
+        l10n: AppLocalizations.of(context),
+        properties: ref.read(propertiesProvider).value ?? const [],
+        caop: ref.read(caopProvider).value,
+      ),
+    );
+    if (target == null) return;
+    _controller.fitCamera(
+      CameraFit.bounds(
+        bounds: LatLngBounds(
+          LatLng(target.minLat, target.minLon),
+          LatLng(target.maxLat, target.maxLon),
+        ),
+        padding: const EdgeInsets.all(32),
+        maxZoom: 18,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final source = ref.watch(imagerySourceProvider);
+    // Start loading CAOP early: the overlay and automatic locations use it.
+    ref.watch(caopProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.navMap),
         actions: [
+          IconButton(
+            tooltip: l10n.mapSearch,
+            icon: const Icon(Icons.search),
+            onPressed: _search,
+          ),
           IconButton(
             tooltip: l10n.mapImagery,
             icon: const Icon(Icons.layers_outlined),
@@ -66,12 +113,15 @@ class MapPage extends ConsumerWidget {
         ],
       ),
       body: FlutterMap(
+        mapController: _controller,
         options: MapOptions(
           initialCenter: const LatLng(39.6, -8),
           initialZoom: 7,
           minZoom: 6,
           maxZoom: 20,
-          cameraConstraint: CameraConstraint.containCenter(bounds: bounds),
+          cameraConstraint: CameraConstraint.containCenter(
+            bounds: MapPage.bounds,
+          ),
         ),
         children: [
           TileLayer(
@@ -86,6 +136,7 @@ class MapPage extends ConsumerWidget {
             tileProvider: ref.watch(imageryTileProviderProvider),
             userAgentPackageName: 'pt.terrenos.app',
           ),
+          const AdminBoundariesLayer(),
           const PropertiesLayer(),
           const Scalebar(alignment: Alignment.bottomLeft),
           SimpleAttributionWidget(
@@ -266,6 +317,135 @@ class _PropertySummary extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Official boundaries over the imagery (MAP-2): distritos when zoomed
+/// out, concelhos at medium zoom, freguesias up close. Works offline.
+class AdminBoundariesLayer extends ConsumerWidget {
+  const new({super.key});
+
+  static const concelhoZoom = 9.0;
+  static const freguesiaZoom = 12.0;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final caop = ref.watch(caopProvider).value;
+    if (caop == null) return const SizedBox.shrink();
+    final zoom = MapCamera.of(context).zoom;
+    final level = zoom >= freguesiaZoom
+        ? AreaKind.freguesia
+        : zoom >= concelhoZoom
+        ? AreaKind.concelho
+        : AreaKind.distrito;
+    return PolylineLayer(polylines: ref.watch(boundaryLinesProvider(level)));
+  }
+}
+
+/// Boundary lines per level, built once from CAOP.
+final ProviderFamily<List<Polyline>, AreaKind> boundaryLinesProvider =
+    Provider.family<List<Polyline>, AreaKind>((ref, kind) {
+      final caop = ref.watch(caopProvider).value;
+      if (caop == null) return const [];
+      final (areas, width) = switch (kind) {
+        AreaKind.distrito => (caop.distritos, 2.5),
+        AreaKind.concelho => (caop.concelhos, 2.0),
+        AreaKind.freguesia => (caop.freguesias, 1.2),
+      };
+      final colour = Colors.white.withValues(alpha: 0.75);
+      return [
+        for (final area in areas)
+          for (final polygon in area.parts)
+            for (final ring in polygon)
+              Polyline(
+                points: [
+                  for (var i = 0; i < ring.length; i += 2)
+                    LatLng(ring[i + 1], ring[i]),
+                  LatLng(ring[1], ring[0]),
+                ],
+                color: colour,
+                strokeWidth: width,
+              ),
+      ];
+    });
+
+/// Search over the user's properties (by name or process number) and CAOP
+/// places (MAP-9, IDN-6). Returns the bounds to show.
+class MapSearchDelegate extends SearchDelegate<Bounds?> {
+  new({required this.l10n, required this.properties, required this.caop})
+    : super(searchFieldLabel: l10n.mapSearch);
+
+  final AppLocalizations l10n;
+  final List<PropertyDocument> properties;
+  final Caop? caop;
+
+  @override
+  List<Widget> buildActions(BuildContext context) => [
+    if (query.isNotEmpty)
+      IconButton(
+        tooltip: l10n.actionClear,
+        icon: const Icon(Icons.clear),
+        onPressed: () => query = '',
+      ),
+  ];
+
+  @override
+  Widget buildLeading(BuildContext context) => const BackButton();
+
+  @override
+  Widget buildResults(BuildContext context) => buildSuggestions(context);
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final q = foldForSearch(query);
+    if (q.isEmpty) return const SizedBox.shrink();
+    final key = Identifiers.normalizeProcessNumber(query);
+    final matchingProperties = [
+      for (final doc in properties)
+        if (doc.geometry.current case final current?
+            when current.vertices.length >= 3 &&
+                (foldForSearch(doc.name).contains(q) ||
+                    (doc.processNumber != null &&
+                        key.isNotEmpty &&
+                        Identifiers.normalizeProcessNumber(doc.processNumber!)
+                            .contains(key))))
+          (doc, GeometryService.measure(current.parts).bounds),
+    ];
+    final places = caop?.search(query) ?? const <AdminArea>[];
+    if (matchingProperties.isEmpty && places.isEmpty) {
+      return Center(child: Text(l10n.mapSearchNoResults));
+    }
+    return ListView(
+      children: [
+        for (final (doc, bounds) in matchingProperties)
+          ListTile(
+            leading: const Icon(Icons.landscape),
+            title: Text(doc.name),
+            subtitle: doc.processNumber == null
+                ? null
+                : Text(l10n.processNumberShort(doc.processNumber!)),
+            onTap: () => close(context, (
+              minLon: bounds.minLon,
+              minLat: bounds.minLat,
+              maxLon: bounds.maxLon,
+              maxLat: bounds.maxLat,
+            )),
+          ),
+        for (final place in places)
+          ListTile(
+            leading: const Icon(Icons.place_outlined),
+            title: Text(place.name),
+            subtitle: Text(switch (place.kind) {
+              AreaKind.distrito => l10n.areaKindDistrito,
+              AreaKind.concelho =>
+                '${l10n.areaKindConcelho} · ${place.distrito}',
+              AreaKind.freguesia =>
+                '${l10n.areaKindFreguesia} · ${place.concelho}',
+            }),
+            onTap: () => close(context, place.bounds),
+          ),
+      ],
     );
   }
 }
