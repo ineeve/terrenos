@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:terrenos/app/app.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/core/device/device_identity.dart';
+import 'package:terrenos/core/map/browse_cache.dart';
+import 'package:terrenos/core/map/tile_downloader.dart';
+import 'package:terrenos/core/map/tile_store.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
 import 'package:terrenos/core/storage/app_directories.dart';
@@ -24,6 +28,15 @@ class Harness {
   final MemoryDeviceRepository device;
   final tiles = FakeTileProvider();
   final properties = MemoryDocumentStorage<PropertyDocument>((d) => d.id);
+  final offlineTiles = MemoryTileStore();
+  final browseCache = MemoryBrowseCache();
+
+  /// Serves a small fake JPEG for every URL and records the requests.
+  final fetchedUrls = <Uri>[];
+  late TileFetcher fetch = (url) async {
+    fetchedUrls.add(url);
+    return Uint8List(100);
+  };
 
   Future<void> pump(WidgetTester tester, {Locale phone = const Locale('en')}) {
     tester.platformDispatcher.localeTestValue = phone;
@@ -39,6 +52,9 @@ class Harness {
           deviceRepositoryProvider.overrideWithValue(device),
           imageryTileProviderProvider.overrideWithValue(tiles),
           propertyStorageProvider.overrideWithValue(properties),
+          tileStorageProvider.overrideWithValue(offlineTiles),
+          tileFetcherProvider.overrideWithValue((url) => fetch(url)),
+          browseCacheProvider.overrideWithValue(browseCache),
         ],
         child: const TerrenosApp(),
       ),

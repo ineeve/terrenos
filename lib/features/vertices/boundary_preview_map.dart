@@ -63,13 +63,7 @@ class BoundaryPreviewMap extends ConsumerWidget {
           options: options,
           children: [
             TileLayer(
-              wmsOptions: WMSTileLayerOptions(
-                baseUrl: source.baseUrl,
-                layers: [source.layer],
-                format: 'image/jpeg',
-                version: '1.3.0',
-                transparent: false,
-              ),
+              wmsOptions: source.wmsOptions,
               tileProvider: ref.watch(imageryTileProviderProvider),
               userAgentPackageName: 'pt.terrenos.app',
             ),

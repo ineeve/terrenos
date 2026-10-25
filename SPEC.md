@@ -130,7 +130,7 @@ Priority: **P0** is required for v1, **P1** should ship in v1, **P2** comes late
 | MAP-4 | User location (dot + accuracy circle) and a "centre on me" button | P0 |
 | MAP-5 | Properties drawn as polygons. Colour is chosen by the user per property, with a default for each group. The name is shown at an interior point | P0 |
 | MAP-6 | Tapping a property opens a bottom sheet (identifier name, process number, area, freguesia, group) with Details and Edit actions | P0 |
-| MAP-7 | **Download an area for offline use:** the user frames the area, chooses detail level (normal: up to z17, high: up to z19), sees the tile count and estimated size, then downloads. Downloads pause and resume across connection loss and app restarts | P0 |
+| MAP-7 | **Download an area for offline use:** the user frames the area (at most 4 km², [ADR 0006](docs/adr/0006-offline-areas-up-to-4-km2.md)), chooses detail level (normal: up to z17, high: up to z19), sees the tile count and estimated size, then downloads. Downloads pause and resume across connection loss and app restarts | P0 |
 | MAP-8 | Manage offline areas: list, size, refresh, delete | P0 |
 | MAP-9 | Offline search box on the map: the user's properties by name or process number (IDN-6), plus places by freguesia, concelho or distrito name (from CAOP). Accent-insensitive ("sao joao" finds "São João") | P1 |
 | MAP-10 | Go to coordinates (WGS84 or PT-TM06) | P1 |
@@ -507,9 +507,9 @@ file. The user can choose to share it through the share sheet from the About scr
   `docs/data-licences.md` (DGT's open orthophoto series are published under CC BY 4.0).
   Attribution "© DGT" is shown on the map and in PDF
   exports.
-- Being a good citizen of a public service: at most 4 concurrent requests, an identifiable
+- Being a good citizen of a public service: at most 8 concurrent requests, an identifiable
   `User-Agent` (`Terrenos/<version> (+contact)`), exponential backoff on errors, and a limit of
-  50 000 tiles per offline area.
+  4 km² per offline area ([ADR 0006](docs/adr/0006-offline-areas-up-to-4-km2.md)).
 - Typical size: 1 km² down to z19 ≈ 400 tiles (≈ 290 at z19 plus lower zooms) ≈ 5 MB, measured in
   spike S1 ([ADR 0004](docs/adr/0004-dgt-imagery-via-wms-epsg3857.md)). Most smallholdings fit easily.
 - Fallback: if DGT can't be used, any CC BY or public-domain imagery service, configured in one

@@ -4,6 +4,8 @@
 /// change in this file.
 library;
 
+import 'package:flutter_map/flutter_map.dart';
+
 /// Identifies requests to DGT (SPEC.md §6.1: an identifying User-Agent).
 const imageryUserAgent = 'Terrenos (+https://github.com/ineeve/terrenos)';
 
@@ -35,4 +37,24 @@ enum ImagerySource {
 
   /// The imagery is 25 cm per pixel, ≈ zoom 19 at Portugal's latitude.
   static const maxNativeZoom = 19;
+
+  /// GetMap parameters. The map and the offline downloader both use these,
+  /// so downloaded tiles are exactly the images the map would request.
+  WMSTileLayerOptions get wmsOptions => WMSTileLayerOptions(
+    baseUrl: baseUrl,
+    layers: [layer],
+    format: 'image/jpeg',
+    version: '1.3.0',
+    transparent: false,
+  );
+
+  /// The source a tile layer shows, from its WMS layer name.
+  static ImagerySource? of(TileLayer layer) {
+    final names = layer.wmsOptions?.layers;
+    if (names == null || names.length != 1) return null;
+    return values.where((s) => s.layer == names.single).firstOrNull;
+  }
+
+  static ImagerySource? byName(Object? name) =>
+      values.where((s) => s.name == name).firstOrNull;
 }

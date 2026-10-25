@@ -214,5 +214,98 @@
   "propertyVertices": "Vertices",
   "propertyDeleted": "Property moved to the recycle bin.",
   "propertyNotFound": "This property no longer exists.",
-  "propertyDetails": "Details"
+  "propertyDetails": "Details",
+  "offlineMapsTitle": "Offline maps",
+  "offlineMapsSettingsHint": "Downloaded areas and stored imagery",
+  "offlineDownloadArea": "Download an area",
+  "offlineAreasEmpty": "No areas downloaded yet. Download the imagery around your properties to see it without internet.",
+  "offlineDownloadedAreas": "Downloaded areas",
+  "offlineBrowseCache": "Recently viewed imagery",
+  "offlineBrowseCacheHint": "{size}. Kept automatically while you use the map online; Android may clear it when space is low.",
+  "@offlineBrowseCacheHint": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "actionClear": "Clear",
+  "actionResume": "Resume",
+  "actionStop": "Stop",
+  "actionDownload": "Download",
+  "actionDownloadAgain": "Download again",
+  "offlineDeleteAll": "Delete all offline maps",
+  "offlineDeleteAllConfirm": "Delete every downloaded area? You will need internet to see this imagery again.",
+  "offlineDeleteConfirm": "Delete “{name}”?",
+  "@offlineDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineDeleteConfirmBody": "Imagery that another downloaded area also covers is kept.",
+  "offlineDetailNormal": "Normal detail",
+  "offlineDetailHigh": "High detail",
+  "offlineTiles": "{size} · {count} tiles",
+  "@offlineTiles": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineStatusDownloading": "Downloading… {percent} %",
+  "@offlineStatusDownloading": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "offlineStatusQueued": "Waiting to download",
+  "offlineStatusIncomplete": "Incomplete: {saved} of {total} tiles. Tap Resume when you have internet.",
+  "@offlineStatusIncomplete": {
+    "placeholders": {
+      "saved": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineFrameTitle": "Frame the area",
+  "offlineFrameHint": "Move and zoom the map until the frame covers the area you need.",
+  "offlineFrameTooLarge": "Too large: the maximum is {max}. Zoom in.",
+  "@offlineFrameTooLarge": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineFrameEstimate": "{count} tiles, about {size}",
+  "@offlineFrameEstimate": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineNameTitle": "Name this area",
+  "offlineNameDefault": "Area {number}",
+  "@offlineNameDefault": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  }
 }

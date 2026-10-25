@@ -29,8 +29,8 @@
 - Ortos 2018 is offered as an optional "previous imagery" layer, useful when a
   boundary is hidden by vegetation in the newer flight. Ortos 2021 is left out
   because it covers only the north.
-- Requests follow SPEC.md §6.1: at most 4 in parallel, an identifying
-  `User-Agent`, backoff on errors, 50 000 tiles per offline area.
+- Requests follow SPEC.md §6.1: at most 8 in parallel, an identifying
+  `User-Agent`, backoff on errors, 4 km² per offline area (ADR 0006).
 - Attribution: "Ortofotos © DGT" on the map, in About and in PDF exports. The
   terms are recorded in `docs/data-licences.md`.
 

@@ -6,6 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderFamily;
 import 'package:terrenos/core/crdt/hlc.dart';
 import 'package:terrenos/core/device/device_identity.dart';
+import 'package:terrenos/core/map/browse_cache.dart';
+import 'package:terrenos/core/map/tile_downloader.dart';
+import 'package:terrenos/core/map/tile_store.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/properties/property_repository.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
@@ -26,6 +29,21 @@ final deviceRepositoryProvider = Provider<DeviceRepository>(
 
 final propertyStorageProvider = Provider<DocumentStorage<PropertyDocument>>(
   (ref) => throw UnimplementedError('Overridden at start-up'),
+);
+
+final tileStorageProvider = Provider<TileStorage>(
+  (ref) => throw UnimplementedError('Overridden at start-up'),
+);
+
+/// The only HTTP client the app uses itself (SPEC.md §10, Offline).
+final tileFetcherProvider = Provider<TileFetcher>((ref) {
+  final fetcher = HttpTileFetcher();
+  ref.onDispose(fetcher.close);
+  return fetcher.call;
+});
+
+final browseCacheProvider = Provider<BrowseCache>(
+  (ref) => FlutterMapBrowseCache(),
 );
 
 /// File storage for properties; `decode` runs in a background isolate.

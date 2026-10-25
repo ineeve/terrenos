@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:terrenos/app/providers.dart';
+import 'package:terrenos/app/router.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
 import 'package:terrenos/features/onboarding/device_name_page.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
@@ -107,6 +111,12 @@ class SettingsPage extends ConsumerWidget {
                 );
               }
             },
+          ),
+          ListTile(
+            leading: const Icon(Icons.download_for_offline_outlined),
+            title: Text(l10n.offlineMapsTitle),
+            subtitle: Text(l10n.offlineMapsSettingsHint),
+            onTap: () => unawaited(context.push(Routes.offlineAreas)),
           ),
           const Divider(),
           ListTile(

@@ -6,6 +6,8 @@ import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/features/editor/boundary_editor_page.dart';
 import 'package:terrenos/features/groups/groups_page.dart';
 import 'package:terrenos/features/map/map_page.dart';
+import 'package:terrenos/features/offline_areas/frame_area_page.dart';
+import 'package:terrenos/features/offline_areas/offline_areas_page.dart';
 import 'package:terrenos/features/onboarding/device_name_page.dart';
 import 'package:terrenos/features/onboarding/intro_page.dart';
 import 'package:terrenos/features/onboarding/language_page.dart';
@@ -29,6 +31,8 @@ abstract final class Routes {
   static const newPropertyDetails = '/new-property/details';
   static String property(String id) => '/property/$id';
   static String propertyBoundary(String id) => '/property/$id/boundary';
+  static const offlineAreas = '/offline-areas';
+  static const offlineAreaNew = '/offline-areas/new';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -84,6 +88,16 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'boundary',
             builder: (context, state) =>
                 BoundaryEditorPage(propertyId: state.pathParameters['id']),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: Routes.offlineAreas,
+        builder: (context, state) => const OfflineAreasPage(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            builder: (context, state) => const FrameAreaPage(),
           ),
         ],
       ),

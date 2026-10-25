@@ -11,12 +11,34 @@ import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/geometry/validation.dart';
 import 'package:terrenos/core/map/imagery.dart';
+import 'package:terrenos/core/map/offline_tile_provider.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
-/// Tile provider for imagery. Overridden in tests so no network is used.
-final imageryTileProviderProvider = Provider<TileProvider>(
-  (ref) => NetworkTileProvider(headers: const {'User-Agent': imageryUserAgent}),
+/// Tile provider for imagery: downloaded tiles first, then the network.
+/// Overridden in tests so no network is used.
+final imageryTileProviderProvider = Provider<TileProvider>((ref) {
+  final provider = OfflineFirstTileProvider(
+    storage: ref.watch(tileStorageProvider),
+  );
+  ref.onDispose(provider.close);
+  return provider;
+});
+
+/// Where the map tab is looking, so offline areas are framed from there.
+final mapViewProvider = NotifierProvider<MapViewController, MapView>(
+  MapViewController.new,
 );
+
+typedef MapView = ({LatLng center, double zoom});
+
+class MapViewController extends Notifier<MapView> {
+  @override
+  MapView build() => (center: const LatLng(39.6, -8), zoom: 7);
+
+  // A method rather than a setter, to match the other controllers.
+  // ignore: use_setters_to_change_properties
+  void update(MapView view) => state = view;
+}
 
 final imagerySourceProvider =
     NotifierProvider<ImagerySourceController, ImagerySource>(
@@ -32,8 +54,8 @@ class ImagerySourceController extends Notifier<ImagerySource> {
   void select(ImagerySource source) => state = source;
 }
 
-/// The map tab (SPEC.md §3.2). Properties, location and offline areas are
-/// added in later tasks (PLAN.md M1–M2).
+/// The map tab (SPEC.md §3.2). Location is added in a later task (PLAN.md
+/// M2).
 class MapPage extends ConsumerWidget {
   const new({super.key});
 
@@ -58,6 +80,11 @@ class MapPage extends ConsumerWidget {
         title: Text(l10n.navMap),
         actions: [
           IconButton(
+            tooltip: l10n.offlineMapsTitle,
+            icon: const Icon(Icons.download_for_offline_outlined),
+            onPressed: () => unawaited(context.push(Routes.offlineAreas)),
+          ),
+          IconButton(
             tooltip: l10n.mapImagery,
             icon: const Icon(Icons.layers_outlined),
             onPressed: () => _chooseImagery(context, ref),
@@ -71,17 +98,14 @@ class MapPage extends ConsumerWidget {
           minZoom: 6,
           maxZoom: 20,
           cameraConstraint: CameraConstraint.containCenter(bounds: bounds),
+          onPositionChanged: (camera, _) => ref
+              .read(mapViewProvider.notifier)
+              .update((center: camera.center, zoom: camera.zoom)),
         ),
         children: [
           TileLayer(
             key: ValueKey(source),
-            wmsOptions: WMSTileLayerOptions(
-              baseUrl: source.baseUrl,
-              layers: [source.layer],
-              format: 'image/jpeg',
-              version: '1.3.0',
-              transparent: false,
-            ),
+            wmsOptions: source.wmsOptions,
             tileProvider: ref.watch(imageryTileProviderProvider),
             userAgentPackageName: 'pt.terrenos.app',
           ),

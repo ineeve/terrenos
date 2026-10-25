@@ -10,3 +10,4 @@ was decided, why, and what it affects. Numbered in order; never renumbered.
 | [0003](0003-cloud-backup-disabled-from-m0.md) | Android cloud backup disabled from the first build |
 | [0004](0004-dgt-imagery-via-wms-epsg3857.md) | DGT Ortos 2025 via WMS in EPSG:3857 (spike S1) |
 | [0005](0005-pt-tm06-with-proj4dart.md) | PT-TM06 conversions with proj4dart (spike S4) |
+| [0006](0006-offline-areas-up-to-4-km2.md) | Offline areas up to 4 km², 8 requests at a time |

@@ -119,7 +119,7 @@ shows DGT imagery (S1); CI is green; spike decisions recorded in `docs/adr/`.
 | T2.4 | Go to vertex: compass arrow, distance, vibration on arrival, "next planned vertex" button | VTX-10 | 1.5 |
 | T2.5 | Continuous walk mode: track recording and simplification | REG-3 | 1 |
 | T2.6 | BlobStore: content-addressed files, thumbnails, EXIF stripping; photos and documents for properties and markers | PROP-15, PROP-16, VTX-12 | 2 |
-| T2.7 | TileStore + file-first tile provider; offline area download (frame the area, size estimate, max 4 parallel requests, resumable) and management | MAP-7, MAP-8, §6.1 | 4 |
+| T2.7 | TileStore + file-first tile provider; offline area download (frame the area, size estimate, max 8 parallel requests, resumable) and management | MAP-7, MAP-8, §6.1 | 4 |
 | T2.8 | **Field test #1:** one parcel planned at home, then surveyed on site; one walked from scratch | §11 | 1 |
 
 **Exit / demo:** **AC13** (go to vertex and survey on site), **AC2** (airplane mode, zero
