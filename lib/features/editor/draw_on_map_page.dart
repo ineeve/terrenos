@@ -9,7 +9,6 @@ import 'package:terrenos/core/editing/snapping.dart';
 import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/geodesy.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
-import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/vertex.dart';
 import 'package:terrenos/features/map/imagery_layer.dart';
@@ -164,7 +163,6 @@ class _DrawOnMapPageState extends ConsumerState<DrawOnMapPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colours = Theme.of(context).colorScheme;
-    final source = ref.watch(imagerySourceProvider);
     final language = Localizations.localeOf(context).languageCode;
     final settings = ref.watch(settingsProvider);
     final ring = _editor.ring();
@@ -230,6 +228,7 @@ class _DrawOnMapPageState extends ConsumerState<DrawOnMapPage> {
             mapController: _map,
             options: _options(),
             children: [
+              const BasemapTileLayer(),
               const ImageryTileLayer(),
               // Neighbouring properties, for orientation and snapping.
               PolygonLayer(
@@ -295,9 +294,7 @@ class _DrawOnMapPageState extends ConsumerState<DrawOnMapPage> {
               ),
               const ZoomInHint(),
               const Scalebar(alignment: Alignment.bottomLeft),
-              SimpleAttributionWidget(
-                source: Text('$dgtAttribution ${source.year}'),
-              ),
+              const MapAttribution(),
             ],
           ),
           // The crosshair marks the map centre.

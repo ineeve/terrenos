@@ -29,3 +29,16 @@ apply to these datasets.
 - **Bundled form:** `assets/caop/caop.json`, simplified and re-encoded by
   `tool/caop/build_caop.py`; see `assets/caop/README.md` and ADR 0006.
 - **Attribution shown:** "CAOP 2025 © DGT" in About.
+
+## OpenStreetMap (low-detail basemap)
+
+- **Provider:** OpenStreetMap Foundation standard tile layer.
+- **Data licence:** Open Database License (ODbL); attribution
+  "© OpenStreetMap contributors" with a link to
+  <https://www.openstreetmap.org/copyright>.
+- **Use:** only below zoom 14, where DGT has no imagery (ADR 0008), under
+  the [tile usage policy](https://operations.osmfoundation.org/policies/tiles/):
+  identifying User-Agent, HTTP caching honoured, **no bulk or offline
+  download**.
+- **Attribution shown:** on the map while OSM tiles are visible (tapping it
+  opens the copyright page) and in About.

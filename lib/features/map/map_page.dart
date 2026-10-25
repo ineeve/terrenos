@@ -164,7 +164,6 @@ class _MapPageState extends ConsumerState<MapPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final source = ref.watch(imagerySourceProvider);
     // Start loading CAOP early: the overlay and automatic locations use it.
     ref.watch(caopProvider);
     return Scaffold(
@@ -208,6 +207,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           backgroundColor: mapBackground,
         ),
         children: [
+          const BasemapTileLayer(),
           const ImageryTileLayer(),
           const AdminBoundariesLayer(),
           const PropertiesLayer(),
@@ -266,9 +266,7 @@ class _MapPageState extends ConsumerState<MapPage> {
               ],
             ),
           const Scalebar(alignment: Alignment.bottomLeft),
-          SimpleAttributionWidget(
-            source: Text('$dgtAttribution ${source.year}'),
-          ),
+          const MapAttribution(),
         ],
       ),
     );

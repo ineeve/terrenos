@@ -12,3 +12,4 @@ was decided, why, and what it affects. Numbered in order; never renumbered.
 | [0005](0005-pt-tm06-with-proj4dart.md) | PT-TM06 conversions with proj4dart (spike S4) |
 | [0006](0006-caop-asset.md) | Bundled CAOP 2025 asset (spike S3) |
 | [0007](0007-crosshair-drawing.md) | Drawing with a crosshair instead of dragging vertices |
+| [0008](0008-openstreetmap-basemap.md) | OpenStreetMap as the low-detail basemap |

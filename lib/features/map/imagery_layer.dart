@@ -4,10 +4,65 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/features/map/map_page.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Background shown where there is no imagery: zoomed out, or offline
 /// before an area is downloaded (MAP-3).
 const mapBackground = Color(0xFFE6EBE0);
+
+/// OpenStreetMap as a low-detail basemap, below the imagery zoom only
+/// (ADR 0008). Goes underneath [ImageryTileLayer].
+class BasemapTileLayer extends ConsumerWidget {
+  const new({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => TileLayer(
+    urlTemplate: OsmBasemap.urlTemplate,
+    tileProvider: ref.watch(imageryTileProviderProvider),
+    maxZoom: OsmBasemap.maxZoom.toDouble(),
+    userAgentPackageName: 'pt.terrenos.app',
+  );
+}
+
+/// Credits the map sources on screen: OpenStreetMap while its basemap is
+/// shown, DGT once the orthophotos are. Tapping opens OpenStreetMap's
+/// copyright page, as its tile policy asks. Wraps on narrow maps.
+class MapAttribution extends ConsumerWidget {
+  const new({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final zoom = MapCamera.of(context).zoom;
+    final source = ref.watch(imagerySourceProvider);
+    final parts = [
+      if (zoom <= OsmBasemap.maxZoom) OsmBasemap.attribution,
+      if (zoom >= ImagerySource.minZoom) '$dgtAttribution ${source.year}',
+    ];
+    return Align(
+      alignment: Alignment.bottomRight,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 96),
+        child: Material(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+          child: InkWell(
+            onTap: () => launchUrl(
+              Uri.parse(OsmBasemap.copyrightUrl),
+              mode: LaunchMode.externalApplication,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              child: Text(
+                parts.join(' · '),
+                textAlign: TextAlign.end,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// The selected DGT orthophotos, from zoom 14 (ImagerySource.minZoom).
 /// Shared by every map in the app.

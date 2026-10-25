@@ -137,7 +137,7 @@
   "propertyDeleted": "Terreno enviado para a reciclagem.",
   "propertyNotFound": "Este terreno já não existe.",
   "propertyDetails": "Detalhes",
-  "aboutDataSources": "Dados do mapa: Ortofotos 2025 e CAOP 2025 © Direção-Geral do Território (DGT), CC BY 4.0.",
+  "aboutDataSources": "Dados do mapa: Ortofotos 2025 e CAOP 2025 © Direção-Geral do Território (DGT), CC BY 4.0. Mapa base © colaboradores do OpenStreetMap (ODbL).",
   "mapSearch": "Procurar locais e terrenos",
   "mapSearchNoResults": "Sem resultados.",
   "actionClear": "Limpar",

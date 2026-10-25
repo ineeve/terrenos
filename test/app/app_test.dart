@@ -98,46 +98,56 @@ void main() {
       }
     });
 
-    testWidgets('the map shows DGT imagery and can switch series', (
-      tester,
-    ) async {
-      final h = Harness(settings: onboarded);
-      await h.pump(tester);
-      await tester.pumpAndSettle();
+    testWidgets(
+      'OpenStreetMap when zoomed out, DGT imagery when zoomed in (ADR 0008)',
+      (tester) async {
+        final h = Harness(settings: onboarded);
+        await h.pump(tester);
+        await tester.pumpAndSettle();
 
-      expect(find.text('Ortofotos © DGT 2025'), findsOneWidget);
-      // Zoomed out, DGT has no imagery: nothing is requested and a hint
-      // says to zoom in.
-      expect(h.tiles.requestedUrls, isEmpty);
-      expect(find.text('Zoom in to see the orthophotos'), findsOneWidget);
+        // Zoomed out: only the OSM basemap, credited, plus a hint.
+        expect(find.text('© OpenStreetMap contributors'), findsOneWidget);
+        expect(find.text('Zoom in to see the orthophotos'), findsOneWidget);
+        expect(h.tiles.requestedUrls, isNotEmpty);
+        expect(
+          h.tiles.requestedUrls.every(
+            (url) => url.startsWith('https://tile.openstreetmap.org/'),
+          ),
+          isTrue,
+        );
 
-      tester
-          .widget<FlutterMap>(find.byType(FlutterMap))
-          .mapController!
-          .move(const LatLng(40.2, -8.43), 15);
-      await tester.pumpAndSettle();
-      expect(find.text('Zoom in to see the orthophotos'), findsNothing);
-      expect(h.tiles.requestedUrls, isNotEmpty);
-      expect(
-        h.tiles.requestedUrls.every(
-          (url) =>
-              url.contains('/wms/ortos2025?') &&
-              url.contains('layers=Ortos2025-RGB') &&
-              url.contains('crs=EPSG%3A3857') &&
-              url.contains('format=image%2Fjpeg'),
-        ),
-        isTrue,
-      );
+        h.tiles.requestedUrls.clear();
+        tester
+            .widget<FlutterMap>(find.byType(FlutterMap))
+            .mapController!
+            .move(const LatLng(40.2, -8.43), 16);
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Map imagery'));
-      await tester.pumpAndSettle();
-      expect(find.text('Orthophotos 2025 (latest)'), findsOneWidget);
-      await tester.tap(find.text('Orthophotos 2018'));
-      await tester.pumpAndSettle();
+        // Zoomed in: DGT only (OSM is never requested at high zoom).
+        expect(find.text('Zoom in to see the orthophotos'), findsNothing);
+        expect(find.text('Ortofotos © DGT 2025'), findsOneWidget);
+        expect(h.tiles.requestedUrls, isNotEmpty);
+        expect(
+          h.tiles.requestedUrls.every(
+            (url) =>
+                url.contains('/wms/ortos2025?') &&
+                url.contains('layers=Ortos2025-RGB') &&
+                url.contains('crs=EPSG%3A3857') &&
+                url.contains('format=image%2Fjpeg'),
+          ),
+          isTrue,
+        );
 
-      expect(find.text('Ortofotos © DGT 2018'), findsOneWidget);
-      expect(h.tiles.requestedUrls.last, contains('layers=Ortos2018-RGB'));
-    });
+        await tester.tap(find.byTooltip('Map imagery'));
+        await tester.pumpAndSettle();
+        expect(find.text('Orthophotos 2025 (latest)'), findsOneWidget);
+        await tester.tap(find.text('Orthophotos 2018'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Ortofotos © DGT 2018'), findsOneWidget);
+        expect(h.tiles.requestedUrls.last, contains('layers=Ortos2018-RGB'));
+      },
+    );
 
     testWidgets('settings change language, units and phone name', (
       tester,

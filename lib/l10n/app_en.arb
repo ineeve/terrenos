@@ -215,7 +215,7 @@
   "propertyDeleted": "Property moved to the recycle bin.",
   "propertyNotFound": "This property no longer exists.",
   "propertyDetails": "Details",
-  "aboutDataSources": "Map data: Ortofotos 2025 and CAOP 2025 © Direção-Geral do Território (DGT), CC BY 4.0.",
+  "aboutDataSources": "Map data: Ortofotos 2025 and CAOP 2025 © Direção-Geral do Território (DGT), CC BY 4.0. Basemap © OpenStreetMap contributors (ODbL).",
   "mapSearch": "Search places and properties",
   "mapSearchNoResults": "Nothing found.",
   "actionClear": "Clear",

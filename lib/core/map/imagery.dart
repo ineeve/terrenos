@@ -42,3 +42,19 @@ enum ImagerySource {
   /// first level with imagery (ADR 0004).
   static const minZoom = 14;
 }
+
+/// OpenStreetMap's standard tiles, used only as a low-detail basemap where
+/// DGT has no imagery (below [ImagerySource.minZoom]; ADR 0008).
+///
+/// OSMF tile usage policy: an identifying User-Agent ([imageryUserAgent]),
+/// visible attribution linking to the copyright page, honour HTTP caching
+/// (flutter_map's built-in cache does), and **no bulk or offline download**.
+abstract final class OsmBasemap {
+  static const urlTemplate = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  static const attribution = '© OpenStreetMap contributors';
+  static const copyrightUrl = 'https://www.openstreetmap.org/copyright';
+
+  /// Shown up to and including the first imagery zoom, so the change from
+  /// basemap to orthophotos has no gap.
+  static const int maxZoom = ImagerySource.minZoom;
+}
