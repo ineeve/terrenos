@@ -335,5 +335,33 @@
   "mapAdminBoundariesHint": "Distritos, concelhos and freguesias (CAOP)",
   "locationDenied": "Allow location access to see where you are on the map.",
   "locationServiceOff": "Location is turned off on this phone.",
-  "actionSettings": "Settings"
+  "actionSettings": "Settings",
+  "drawVertex": "Vertex",
+  "drawInsertVertex": "Add a vertex here",
+  "drawHint": "Tap the map to add vertices. Drag a vertex to move it; press and hold to delete it.",
+  "drawSnapped": "Snapped to a neighbour’s vertex",
+  "editorShowMap": "Draw on the map",
+  "editorShowList": "Vertex list",
+  "actionDeleteVertex": "Delete vertex",
+  "actionKeepEditing": "Keep editing",
+  "actionDiscard": "Discard",
+  "draftDiscardTitle": "Discard this boundary?",
+  "draftDiscardBody": "The changes you made will be lost.",
+  "draftResumeTitle": "Unfinished boundary",
+  "draftResumeNew": "You were drawing a new property ({count} vertices). Continue where you left off?",
+  "draftResumeEdit": "You were changing the boundary of “{name}”. Continue where you left off?",
+  "@draftResumeNew": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@draftResumeEdit": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

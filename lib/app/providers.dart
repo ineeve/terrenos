@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/misc.dart' show ProviderFamily;
 import 'package:terrenos/core/caop/admin_boundaries.dart';
 import 'package:terrenos/core/crdt/hlc.dart';
 import 'package:terrenos/core/device/device_identity.dart';
+import 'package:terrenos/core/editing/boundary_draft.dart';
 import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/map/browse_cache.dart';
 import 'package:terrenos/core/map/tile_downloader.dart';
@@ -33,6 +34,11 @@ final deviceRepositoryProvider = Provider<DeviceRepository>(
 );
 
 final propertyStorageProvider = Provider<DocumentStorage<PropertyDocument>>(
+  (ref) => throw UnimplementedError('Overridden at start-up'),
+);
+
+/// Unfinished boundary edits (REG-12).
+final draftStorageProvider = Provider<DraftStorage>(
   (ref) => throw UnimplementedError('Overridden at start-up'),
 );
 

@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/core/device/device_identity.dart';
+import 'package:terrenos/core/editing/boundary_draft.dart';
 import 'package:terrenos/core/map/tile_store.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
 import 'package:terrenos/core/storage/app_directories.dart';
@@ -26,6 +27,7 @@ Future<List<Override>> bootstrap() async {
     ),
     propertyStorageProvider.overrideWithValue(propertyFileStore(dirs)),
     tileStorageProvider.overrideWithValue(FileTileStore(dirs.tiles)),
+    draftStorageProvider.overrideWithValue(FileDraftStore(dirs.drafts)),
   ];
 }
 

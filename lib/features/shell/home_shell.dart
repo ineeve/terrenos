@@ -1,16 +1,35 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:terrenos/features/editor/draft_resume.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
 /// Bottom navigation: Mapa · Terrenos · Grupos · Definições (SPEC.md §4).
-class HomeShell extends StatelessWidget {
+class HomeShell extends ConsumerStatefulWidget {
   const new({required this.shell, super.key});
 
   final StatefulNavigationShell shell;
 
   @override
+  ConsumerState<HomeShell> createState() => _HomeShellState();
+}
+
+class _HomeShellState extends ConsumerState<HomeShell> {
+  @override
+  void initState() {
+    super.initState();
+    // Once per launch: the shell lives as long as the app is open.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(offerDraft(context, ref));
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final shell = widget.shell;
     return Scaffold(
       body: shell,
       bottomNavigationBar: NavigationBar(

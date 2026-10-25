@@ -8,6 +8,7 @@ import 'package:terrenos/app/app.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/core/caop/admin_boundaries.dart';
 import 'package:terrenos/core/device/device_identity.dart';
+import 'package:terrenos/core/editing/boundary_draft.dart';
 import 'package:terrenos/core/map/browse_cache.dart';
 import 'package:terrenos/core/map/tile_downloader.dart';
 import 'package:terrenos/core/map/tile_store.dart';
@@ -36,6 +37,7 @@ class Harness {
   final tiles = FakeTileProvider();
   final properties = MemoryDocumentStorage<PropertyDocument>((d) => d.id);
   final offlineTiles = MemoryTileStore();
+  final drafts = MemoryDraftStore();
   final browseCache = MemoryBrowseCache();
 
   /// Serves a small fake JPEG for every URL and records the requests.
@@ -60,6 +62,7 @@ class Harness {
           imageryTileProviderProvider.overrideWithValue(tiles),
           propertyStorageProvider.overrideWithValue(properties),
           tileStorageProvider.overrideWithValue(offlineTiles),
+          draftStorageProvider.overrideWithValue(drafts),
           tileFetcherProvider.overrideWithValue((url) => fetch(url)),
           browseCacheProvider.overrideWithValue(browseCache),
           locationSourceProvider.overrideWithValue(location),

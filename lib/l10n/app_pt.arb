@@ -175,5 +175,19 @@
   "mapAdminBoundariesHint": "Distritos, concelhos e freguesias (CAOP)",
   "locationDenied": "Permita o acesso à localização para ver onde está no mapa.",
   "locationServiceOff": "A localização está desligada neste telemóvel.",
-  "actionSettings": "Definições"
+  "actionSettings": "Definições",
+  "drawVertex": "Vértice",
+  "drawInsertVertex": "Adicionar um vértice aqui",
+  "drawHint": "Toque no mapa para adicionar vértices. Arraste um vértice para o mover; mantenha premido para o apagar.",
+  "drawSnapped": "Ajustado ao vértice de um vizinho",
+  "editorShowMap": "Desenhar no mapa",
+  "editorShowList": "Lista de vértices",
+  "actionDeleteVertex": "Apagar vértice",
+  "actionKeepEditing": "Continuar a editar",
+  "actionDiscard": "Descartar",
+  "draftDiscardTitle": "Descartar estes limites?",
+  "draftDiscardBody": "As alterações que fez perdem-se.",
+  "draftResumeTitle": "Limites por terminar",
+  "draftResumeNew": "Estava a desenhar um terreno novo ({count} vértices). Quer continuar onde ficou?",
+  "draftResumeEdit": "Estava a alterar os limites de “{name}”. Quer continuar onde ficou?"
 }

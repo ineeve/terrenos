@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/app/router.dart';
+import 'package:terrenos/core/editing/boundary_draft.dart';
 import 'package:terrenos/core/editing/boundary_editor.dart';
 import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
@@ -11,27 +14,39 @@ import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/core/model/vertex.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
+import 'package:terrenos/features/editor/draw_map.dart';
 import 'package:terrenos/features/vertices/boundary_preview_map.dart';
 import 'package:terrenos/features/vertices/coordinate_entry_page.dart';
+import 'package:terrenos/features/vertices/vertex_format.dart';
 import 'package:terrenos/features/vertices/vertex_table.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
-/// Builds or edits a boundary as a vertex list (REG-11, VTX-2–5): a map
-/// preview, live area and perimeter, the vertex table, and coordinate
-/// entry. Works without any imagery: the map is only a preview.
+/// Builds or edits a boundary (REG-1, REG-11, VTX-2–5). Two views of the
+/// same edit: draw on the map, or the vertex table with coordinate entry,
+/// which works without any imagery. Every change is saved as a draft
+/// (REG-12).
 class BoundaryEditorPage extends ConsumerStatefulWidget {
   /// `null` creates a new property; otherwise edits its boundary.
-  const new({this.propertyId, super.key});
+  const new({this.propertyId, this.startOnMap = false, super.key});
 
   final String? propertyId;
+  final bool startOnMap;
 
   @override
   ConsumerState<BoundaryEditorPage> createState() => _BoundaryEditorPageState();
 }
 
 class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
+  late final BoundaryDraft? _resumed = ref
+      .read(draftStorageProvider)
+      .load(widget.propertyId ?? BoundaryDraft.newProperty);
   late final BoundaryEditor _editor = _createEditor();
+  late bool _onMap = widget.startOnMap;
+  late bool _dirty = _resumed != null;
   String? _selectedId;
+
+  /// The vertex being dragged on the map, before the move is committed.
+  ({String id, DrawPosition at})? _drag;
 
   BoundaryEditor _createEditor() {
     final id = widget.propertyId;
@@ -40,7 +55,7 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
         : ref.read(propertyRepositoryProvider).byId(id);
     final history = doc?.geometry;
     return BoundaryEditor(
-      initial: history?.current?.parts ?? const [],
+      initial: _resumed?.parts ?? history?.current?.parts ?? const [],
       usedIds: [
         for (final version in history?.versions.values ?? <GeometryVersion>[])
           ...version.vertices.map((v) => v.id),
@@ -48,20 +63,101 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
     );
   }
 
+  /// Applies an edit and writes the draft (REG-12).
+  void _change(void Function() edit) {
+    setState(() {
+      edit();
+      _dirty = true;
+    });
+    final drafts = ref.read(draftStorageProvider);
+    final key = widget.propertyId ?? BoundaryDraft.newProperty;
+    final draft = BoundaryDraft(
+      propertyId: widget.propertyId,
+      parts: _editor.parts,
+      updatedAt: DateTime.now().toUtc(),
+    );
+    if (draft.vertexCount == 0) {
+      unawaited(drafts.delete(key));
+    } else {
+      unawaited(drafts.save(draft));
+    }
+  }
+
+  Future<void> _discardDraft() async {
+    _dirty = false;
+    await ref
+        .read(draftStorageProvider)
+        .delete(widget.propertyId ?? BoundaryDraft.newProperty);
+  }
+
+  RingRef _ringOf(String id) {
+    final parts = _editor.parts;
+    for (var p = 0; p < parts.length; p++) {
+      for (var r = 0; r < parts[p].length; r++) {
+        if (parts[p][r].any((v) => v.id == id)) return (part: p, ring: r);
+      }
+    }
+    return outerRing;
+  }
+
+  /// The boundary as shown: with the dragged vertex where the finger is.
+  BoundaryParts get _shown {
+    final drag = _drag;
+    if (drag == null) return _editor.parts;
+    return [
+      for (final part in _editor.parts)
+        [
+          for (final ring in part)
+            [
+              for (final v in ring)
+                if (v.id == drag.id)
+                  Vertex(
+                    id: v.id,
+                    lon: drag.at.position.lon,
+                    lat: drag.at.position.lat,
+                    source: VertexSource.map,
+                  )
+                else
+                  v,
+            ],
+        ],
+    ];
+  }
+
   Future<void> _add() async {
     final typed = await CoordinateEntryPage.open(context);
     if (typed == null) return;
-    setState(() {
+    _change(() {
       _selectedId = _editor
           .add(typed.position, source: VertexSource.typed, input: typed.input)
           .id;
     });
   }
 
+  /// A tap on the map adds a vertex after the selected one, or at the end.
+  void _addOnMap(DrawPosition at) {
+    final selected = _selectedId;
+    _change(() {
+      _selectedId = _editor
+          .add(
+            at.position,
+            source: VertexSource.map,
+            afterId: selected,
+            ref: selected == null ? outerRing : _ringOf(selected),
+          )
+          .id;
+    });
+  }
+
+  void _delete(String id) => _change(() {
+    _editor.delete(id);
+    if (_selectedId == id) _selectedId = null;
+  });
+
   Future<void> _edit(Vertex vertex) async {
     final typed = await CoordinateEntryPage.open(context, vertex: vertex);
     if (typed == null) return;
-    setState(() {
+    _change(() {
       _editor.move(
         vertex.id,
         typed.position,
@@ -104,7 +200,7 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
       case 'edit':
         await _edit(vertex);
       case 'delete':
-        setState(() => _editor.delete(vertex.id));
+        _delete(vertex.id);
     }
   }
 
@@ -123,11 +219,37 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
 
     final id = widget.propertyId;
     if (id == null) {
+      // The draft is kept until the details are saved too.
       await context.push(Routes.newPropertyDetails, extra: result.parts);
     } else {
       await ref.read(propertyRepositoryProvider).saveBoundary(id, result.parts);
+      await _discardDraft();
       if (mounted) context.pop();
     }
+  }
+
+  Future<void> _confirmLeave() async {
+    final l10n = AppLocalizations.of(context);
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.draftDiscardTitle),
+        content: Text(l10n.draftDiscardBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.actionKeepEditing),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.actionDiscard),
+          ),
+        ],
+      ),
+    );
+    if (!(discard ?? false) || !mounted) return;
+    await _discardDraft();
+    if (mounted) context.pop();
   }
 
   @override
@@ -135,84 +257,207 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
     final l10n = AppLocalizations.of(context);
     final language = Localizations.localeOf(context).languageCode;
     final areaUnit = ref.watch(settingsProvider.select((s) => s.areaUnit));
+    final shown = _shown;
     final ring = _editor.ring();
-    Measurements? measurements;
-    if (ring.length >= 3) {
-      measurements = GeometryService.measure(_editor.parts);
-    }
+    final count = shown.fold(
+      0,
+      (sum, part) => sum + part.fold(0, (s, r) => s + r.length),
+    );
+    final measurements = count >= 3 ? GeometryService.measure(shown) : null;
+    final small = Theme.of(context).textTheme.bodySmall;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.propertyId == null
-              ? l10n.newPropertyTitle
-              : l10n.editBoundaryTitle,
-        ),
-        actions: [
-          IconButton(
-            tooltip: l10n.actionUndo,
-            icon: const Icon(Icons.undo),
-            onPressed: _editor.canUndo ? () => setState(_editor.undo) : null,
-          ),
-          IconButton(
-            tooltip: l10n.actionRedo,
-            icon: const Icon(Icons.redo),
-            onPressed: _editor.canRedo ? () => setState(_editor.redo) : null,
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-        children: [
-          BoundaryPreviewMap(parts: _editor.parts, highlightId: _selectedId),
-          const SizedBox(height: 12),
-          if (measurements == null)
-            Text(l10n.editorNeedThree)
-          else ...[
-            Text(
-              l10n.editorArea(
-                formatArea(
-                  measurements.areaSquareMetres,
-                  areaUnit,
-                  languageCode: language,
-                ),
+    return PopScope(
+      canPop: !_dirty,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) unawaited(_confirmLeave());
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.propertyId == null
+                    ? l10n.newPropertyTitle
+                    : l10n.editBoundaryTitle,
               ),
-              style: Theme.of(context).textTheme.titleMedium,
+              // Live area and perimeter (REG-6).
+              if (measurements == null)
+                Text(l10n.editorNeedThree, style: small)
+              else ...[
+                Text(
+                  l10n.editorArea(
+                    formatArea(
+                      measurements.areaSquareMetres,
+                      areaUnit,
+                      languageCode: language,
+                    ),
+                  ),
+                  style: small,
+                ),
+                Text(
+                  l10n.editorPerimeter(
+                    formatLength(
+                      measurements.perimeterMetres,
+                      languageCode: language,
+                    ),
+                  ),
+                  style: small,
+                ),
+              ],
+            ],
+          ),
+          toolbarHeight: 72,
+          actions: [
+            IconButton(
+              tooltip: l10n.actionUndo,
+              icon: const Icon(Icons.undo),
+              onPressed: _editor.canUndo ? () => _change(_editor.undo) : null,
             ),
-            Text(
-              l10n.editorPerimeter(
-                formatLength(
-                  measurements.perimeterMetres,
-                  languageCode: language,
-                ),
-              ),
+            IconButton(
+              tooltip: l10n.actionRedo,
+              icon: const Icon(Icons.redo),
+              onPressed: _editor.canRedo ? () => _change(_editor.redo) : null,
+            ),
+            IconButton(
+              tooltip: _onMap ? l10n.editorShowList : l10n.editorShowMap,
+              icon: Icon(_onMap ? Icons.list_alt : Icons.map_outlined),
+              onPressed: () => setState(() => _onMap = !_onMap),
             ),
           ],
-          if (ring.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            SurveyProgress(vertices: ring),
-          ],
-          const Divider(),
-          VertexRows(vertices: ring, onTap: (v, _) => _actions(v)),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _add,
-        icon: const Icon(Icons.add_location_alt),
-        label: Text(l10n.vertexAddTitle),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: FilledButton(
-            onPressed: ring.length >= 3 ? _finish : null,
-            child: Text(
-              widget.propertyId == null ? l10n.actionNext : l10n.actionSave,
+        ),
+        body: _onMap
+            ? _mapView(shown, l10n, language)
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                children: [
+                  BoundaryPreviewMap(parts: shown, highlightId: _selectedId),
+                  if (ring.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    SurveyProgress(vertices: ring),
+                  ],
+                  const Divider(),
+                  VertexRows(vertices: ring, onTap: (v, _) => _actions(v)),
+                ],
+              ),
+        floatingActionButton: _onMap
+            ? null
+            : FloatingActionButton.extended(
+                onPressed: _add,
+                icon: const Icon(Icons.add_location_alt),
+                label: Text(l10n.vertexAddTitle),
+              ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                if (_onMap) ...[
+                  IconButton.outlined(
+                    tooltip: l10n.actionDeleteVertex,
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: _selectedId == null
+                        ? null
+                        : () => _delete(_selectedId!),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: FilledButton(
+                    onPressed: count >= 3 ? _finish : null,
+                    child: Text(
+                      widget.propertyId == null
+                          ? l10n.actionNext
+                          : l10n.actionSave,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _mapView(BoundaryParts shown, AppLocalizations l10n, String language) {
+    final format = ref.watch(
+      settingsProvider.select((s) => s.coordinateFormat),
+    );
+    final focusId = _drag?.id ?? _selectedId;
+    Vertex? focus;
+    var index = 0;
+    for (final part in shown) {
+      for (final ring in part) {
+        for (final (i, v) in ring.indexed) {
+          if (v.id == focusId) (focus, index) = (v, i);
+        }
+      }
+    }
+    final theme = Theme.of(context);
+    return Stack(
+      children: [
+        DrawMap(
+          parts: shown,
+          selectedId: _selectedId,
+          propertyId: widget.propertyId,
+          onAdd: _addOnMap,
+          onSelect: (id) => setState(() => _selectedId = id),
+          onDrag: (id, at) =>
+              setState(() => _drag = at == null ? null : (id: id, at: at)),
+          onMove: (id, at) => _change(
+            () => _editor.move(id, at.position, source: VertexSource.map),
+          ),
+          onInsert: (afterId, position) => _change(() {
+            _selectedId = _editor
+                .add(
+                  position,
+                  source: VertexSource.map,
+                  afterId: afterId,
+                  ref: _ringOf(afterId),
+                )
+                .id;
+          }),
+          onDelete: _delete,
+        ),
+        // The selected or dragged vertex's coordinates, live (REG-1).
+        Positioned(
+          left: 8,
+          right: 8,
+          top: 8,
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: focus == null
+                  ? Text(l10n.drawHint, style: theme.textTheme.bodySmall)
+                  : Row(
+                      children: [
+                        Text(
+                          vertexLabel(index, null),
+                          style: theme.textTheme.titleSmall,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(switch (formatVertex(
+                            focus,
+                            format,
+                            language,
+                          )) {
+                            (final a, final b) => '$a\n$b',
+                          }),
+                        ),
+                        if (_drag?.at.snapped ?? false)
+                          Tooltip(
+                            message: l10n.drawSnapped,
+                            child: const Icon(Icons.join_inner),
+                          ),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

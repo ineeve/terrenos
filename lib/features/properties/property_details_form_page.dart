@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/app/router.dart';
+import 'package:terrenos/core/editing/boundary_draft.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/core/model/identifiers.dart';
@@ -53,6 +54,8 @@ class _PropertyDetailsFormPageState
         PropertyField.landUse: _landUse!.code,
       },
     );
+    // The boundary is saved now, so its draft isn't needed (REG-12).
+    await ref.read(draftStorageProvider).delete(BoundaryDraft.newProperty);
     if (!mounted) return;
     context.go(Routes.properties);
     await context.push(Routes.property(doc.id));
