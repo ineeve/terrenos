@@ -81,15 +81,18 @@ class MyLocationController extends Notifier<MyLocationState> {
       _fixes = null;
       return;
     }
-    _fixes ??= _source.fixes().listen(
-      (fix) => state = MyLocationState(access: state.access, fix: fix),
-      // Location was turned off or revoked while listening.
-      onError: (Object _) async {
-        _fixes = null;
-        await _startIfAllowed();
-      },
-      cancelOnError: true,
-    );
+    _fixes ??= ref
+        .read(locationHubProvider)
+        .fixes()
+        .listen(
+          (fix) => state = MyLocationState(access: state.access, fix: fix),
+          // Location was turned off or revoked while listening.
+          onError: (Object _) async {
+            _fixes = null;
+            await _startIfAllowed();
+          },
+          cancelOnError: true,
+        );
   }
 }
 

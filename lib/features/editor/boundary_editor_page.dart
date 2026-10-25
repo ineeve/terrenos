@@ -11,11 +11,13 @@ import 'package:terrenos/core/editing/boundary_fixes.dart';
 import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/geometry/validation.dart';
+import 'package:terrenos/core/location/gps_averaging.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/core/model/vertex.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
 import 'package:terrenos/features/editor/draw_map.dart';
+import 'package:terrenos/features/editor/walk_panel.dart';
 import 'package:terrenos/features/vertices/boundary_preview_map.dart';
 import 'package:terrenos/features/vertices/coordinate_entry_page.dart';
 import 'package:terrenos/features/vertices/vertex_format.dart';
@@ -28,10 +30,18 @@ import 'package:terrenos/l10n/gen/app_localizations.dart';
 /// (REG-12).
 class BoundaryEditorPage extends ConsumerStatefulWidget {
   /// `null` creates a new property; otherwise edits its boundary.
-  const new({this.propertyId, this.startOnMap = false, super.key});
+  const new({
+    this.propertyId,
+    this.startOnMap = false,
+    this.startWalking = false,
+    super.key,
+  });
 
   final String? propertyId;
   final bool startOnMap;
+
+  /// Opens in walk mode, capturing points with GPS (REG-2).
+  final bool startWalking;
 
   @override
   ConsumerState<BoundaryEditorPage> createState() => _BoundaryEditorPageState();
@@ -42,7 +52,8 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
       .read(draftStorageProvider)
       .load(widget.propertyId ?? BoundaryDraft.newProperty);
   late final BoundaryEditor _editor = _createEditor();
-  late bool _onMap = widget.startOnMap;
+  late bool _onMap = widget.startOnMap || widget.startWalking;
+  late bool _walking = widget.startWalking;
   late bool _dirty = _resumed != null;
   String? _selectedId;
 
@@ -95,6 +106,15 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
         .delete(widget.propertyId ?? BoundaryDraft.newProperty);
   }
 
+  /// `V3` for the selected vertex, for walk mode's insert choice.
+  String? get _selectedLabel {
+    final id = _selectedId;
+    if (id == null) return null;
+    final ring = _editor.ring(_ringOf(id));
+    final index = ring.indexWhere((v) => v.id == id);
+    return index < 0 ? null : vertexLabel(index, null);
+  }
+
   RingRef _ringOf(String id) {
     final parts = _editor.parts;
     for (var p = 0; p < parts.length; p++) {
@@ -127,6 +147,50 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
             ],
         ],
     ];
+  }
+
+  /// Adds a point captured in walk mode (REG-2, VTX-8).
+  void _capture(AveragedFix fix, InsertAt at) {
+    final l10n = AppLocalizations.of(context);
+    final gps = fix.toGpsFix(ref.read(deviceProvider).deviceId);
+    final position = (lon: fix.lon, lat: fix.lat);
+    late Vertex vertex;
+    _change(() {
+      final selected = _selectedId;
+      vertex = switch (at) {
+        InsertAt.nearestEdge => _editor.insertIntoNearestEdge(
+          position,
+          source: VertexSource.gps,
+          gps: gps,
+        ),
+        InsertAt.afterSelected when selected != null => _editor.add(
+          position,
+          source: VertexSource.gps,
+          gps: gps,
+          afterId: selected,
+          ref: _ringOf(selected),
+        ),
+        _ => _editor.add(position, source: VertexSource.gps, gps: gps),
+      };
+      _selectedId = vertex.id;
+    });
+    final ring = _editor.ring(_ringOf(vertex.id));
+    final label = vertexLabel(ring.indexWhere((v) => v.id == vertex.id), null);
+    final accuracy = fix.accuracyMetres.round();
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          // VAL-8: said straight away, not only when saving.
+          content: Text(
+            isLowConfidence(vertex)
+                ? (fix.mocked
+                      ? l10n.walkCapturedMocked(label)
+                      : l10n.walkCapturedImprecise(label, accuracy))
+                : l10n.walkCaptured(label, accuracy, fix.samples),
+          ),
+        ),
+      );
   }
 
   Future<void> _add() async {
@@ -377,6 +441,15 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
               onPressed: _editor.canRedo ? () => _change(_editor.redo) : null,
             ),
             IconButton(
+              tooltip: _walking ? l10n.walkStop : l10n.walkStart,
+              isSelected: _walking,
+              icon: const Icon(Icons.directions_walk),
+              onPressed: () => setState(() {
+                _walking = !_walking;
+                if (_walking) _onMap = true;
+              }),
+            ),
+            IconButton(
               tooltip: _onMap ? l10n.editorShowList : l10n.editorShowMap,
               icon: Icon(_onMap ? Icons.list_alt : Icons.map_outlined),
               onPressed: () => setState(() => _onMap = !_onMap),
@@ -422,32 +495,43 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
               ),
         floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
         bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                if (_onMap) ...[
-                  IconButton.outlined(
-                    tooltip: l10n.actionDeleteVertex,
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: _selectedId == null
-                        ? null
-                        : () => _delete(_selectedId!),
-                  ),
-                  const SizedBox(width: 12),
-                ],
-                Expanded(
-                  child: FilledButton(
-                    onPressed: count >= 3 ? _finish : null,
-                    child: Text(
-                      widget.propertyId == null
-                          ? l10n.actionNext
-                          : l10n.actionSave,
-                    ),
-                  ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_walking && _onMap)
+                WalkPanel(
+                  selectedLabel: _selectedLabel,
+                  onCapture: _capture,
+                  onStop: () => setState(() => _walking = false),
                 ),
-              ],
-            ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    if (_onMap) ...[
+                      IconButton.outlined(
+                        tooltip: l10n.actionDeleteVertex,
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: _selectedId == null
+                            ? null
+                            : () => _delete(_selectedId!),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: count >= 3 ? _finish : null,
+                        child: Text(
+                          widget.propertyId == null
+                              ? l10n.actionNext
+                              : l10n.actionSave,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

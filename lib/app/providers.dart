@@ -4,6 +4,7 @@ library;
 
 import 'dart:isolate';
 
+import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderFamily;
@@ -11,6 +12,7 @@ import 'package:terrenos/core/caop/admin_boundaries.dart';
 import 'package:terrenos/core/crdt/hlc.dart';
 import 'package:terrenos/core/device/device_identity.dart';
 import 'package:terrenos/core/editing/boundary_draft.dart';
+import 'package:terrenos/core/location/location_hub.dart';
 import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/map/browse_cache.dart';
 import 'package:terrenos/core/map/tile_downloader.dart';
@@ -64,6 +66,19 @@ final browseCacheProvider = Provider<BrowseCache>(
 
 final locationSourceProvider = Provider<LocationSource>(
   (ref) => GeolocatorLocationSource(),
+);
+
+/// The one GPS stream every feature listens to.
+final locationHubProvider = Provider<LocationHub>((ref) {
+  final hub = LocationHub(ref.watch(locationSourceProvider));
+  ref.onDispose(hub.dispose);
+  return hub;
+});
+
+/// The battery level in %, for the warning before walk mode (§7.3).
+final batteryLevelProvider = Provider<Future<int> Function()>(
+  (ref) =>
+      () => Battery().batteryLevel,
 );
 
 /// Distritos, concelhos and freguesias from the bundled CAOP asset (§6.2),

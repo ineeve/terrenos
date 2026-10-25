@@ -149,7 +149,9 @@ class GpsSampler {
     await done.future;
     timer.cancel();
     ticker.cancel();
-    await subscription.cancel();
+    // Not awaited: nothing depends on the stream having stopped, and the
+    // cancel future can belong to another zone.
+    unawaited(subscription.cancel());
     if (elapsed >= duration) elapsed = duration;
     report();
     return averageFixes(collected);

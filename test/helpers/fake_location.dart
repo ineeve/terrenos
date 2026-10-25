@@ -31,6 +31,8 @@ class FakeLocationSource implements LocationSource {
   @override
   Future<LocationAccess> requestAccess() async {
     requests++;
+    // Like Android: asking again once allowed changes nothing.
+    if (current == LocationAccess.granted) return current;
     return current = afterRequest;
   }
 

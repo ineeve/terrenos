@@ -42,10 +42,30 @@
 - `permission_handler` is pinned to 12.x: 13.x requires `compileSdk` 37,
   and Flutter 3.47 builds against 36.
 - Google's fused location refuses to start when "Google Location
-  Accuracy" is off, even with GPS on (seen on the emulator). The app then
-  falls back to Android's own GPS provider (`forceLocationManager`), so
-  recording works either way. The same fallback is what the `foss` flavour
-  will rely on.
+  Accuracy" is off, even with GPS on (seen on the emulator), and in the app
+  it shows Google's prompt to turn that setting on.
+
+## Update (T2.2, 2026-10-25): Android's GPS provider only
+
+The app always uses Android's own location provider
+(`forceLocationManager: true`), never Google's fused location (the user's
+choice, option B of three):
+
+- Google's prompt asks users to let Google process Wi-Fi and cell
+  information. The app says it collects no data; even though that data
+  would go to Google rather than to us, the prompt undermines it.
+- It works the same on phones without Google Play services, so the `foss`
+  flavour needs no other location code. `geolocator_android` still bundles
+  `play-services-location`; T4.5 must exclude it from `foss`, which is
+  safe because the fused client is never created.
+- Surveying happens outdoors, where both use the same satellites. The
+  costs are a slower first fix after the phone was indoors and no position
+  dot indoors; walk mode shows "No GPS" until a fix arrives.
+
+A single `LocationHub` owns the app's one GPS stream (geolocator allows
+only one per app) and restarts it with the recording notice while walk
+mode records, so the map's position dot can't keep recording from running
+as a foreground service.
 - Fixes for one vertex are averaged as in SPEC.md §7.3. The stored accuracy
   is the median of the fixes used, not reduced by averaging: fixes seconds
   apart share most of their error.

@@ -25,7 +25,7 @@ Offset _onMap(WidgetTester tester, Offset fromCentre) =>
     tester.getCenter(find.byType(FlutterMap)) + fromCentre;
 
 MapCamera _camera(WidgetTester tester) =>
-    MapCamera.of(tester.element(find.byType(MarkerLayer)));
+    MapCamera.of(tester.element(find.byType(MarkerLayer).first));
 
 Finder _vertex(String id) => find.byKey(ValueKey('vertex-$id'));
 

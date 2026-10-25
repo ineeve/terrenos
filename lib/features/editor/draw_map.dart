@@ -182,6 +182,7 @@ class _DrawMapState extends ConsumerState<DrawMap> {
               ),
               const AdminBoundariesLayer(),
               _OtherProperties(except: widget.propertyId),
+              const MyLocationLayer(),
               PolygonLayer(
                 polygons: [
                   for (final ring in rings)

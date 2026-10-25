@@ -363,15 +363,17 @@ Future<void> chooseNewPropertyMethod(BuildContext context) async {
               onTap: () => Navigator.of(context).pop(Routes.newPropertyDraw),
             ),
             ListTile(
+              leading: const Icon(Icons.directions_walk),
+              title: Text(l10n.methodWalk),
+              onTap: () => Navigator.of(context).pop(Routes.newPropertyWalk),
+            ),
+            ListTile(
               leading: const Icon(Icons.keyboard),
               title: Text(l10n.methodCoordinates),
               onTap: () =>
                   Navigator.of(context).pop(Routes.newPropertyCoordinates),
             ),
-            for (final (icon, label) in [
-              (Icons.directions_walk, l10n.methodWalk),
-              (Icons.file_open, l10n.methodImport),
-            ])
+            for (final (icon, label) in [(Icons.file_open, l10n.methodImport)])
               ListTile(
                 leading: Icon(icon),
                 title: Text(label),

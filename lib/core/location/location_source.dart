@@ -4,6 +4,8 @@
 /// averaging and a foreground service on top of the same source.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -122,43 +124,34 @@ class GeolocatorLocationSource implements LocationSource {
         LocationPermission.unableToDetermine => LocationAccess.denied,
       };
 
-  /// Google's fused location first: it also uses Wi-Fi, so the first fix
-  /// comes sooner. It refuses to start when Google's location service is
-  /// off (Android's "Google Location Accuracy"), even with GPS on; then
-  /// Android's own GPS provider is used, which is what surveying needs.
+  /// Android's own GPS provider, never Google's fused location: that one
+  /// may ask the user to turn on Google's "Location Accuracy", which sends
+  /// Wi-Fi and cell data to Google, and the app promises to collect no
+  /// data (ADR 0008). Outdoors, where surveying happens, both use the same
+  /// satellites.
+  ///
+  /// Cancelling stops geolocator's stream at once, so a new one can start
+  /// straight away with other settings (see `LocationHub`).
   @override
-  Stream<LocationFix> fixes({RecordingNotice? notice}) async* {
-    try {
-      await for (final p in _positions(notice, locationManager: false)) {
-        yield _fix(p);
-      }
-    } on LocationServiceDisabledException {
-      if (!await Geolocator.isLocationServiceEnabled()) rethrow;
-      yield* _positions(notice, locationManager: true).map(_fix);
-    }
-  }
-
-  static Stream<Position> _positions(
-    RecordingNotice? notice, {
-    required bool locationManager,
-  }) => Geolocator.getPositionStream(
-    locationSettings: defaultTargetPlatform == TargetPlatform.android
-        ? AndroidSettings(
-            intervalDuration: const Duration(seconds: 1),
-            forceLocationManager: locationManager,
-            foregroundNotificationConfig: notice == null
-                ? null
-                : ForegroundNotificationConfig(
-                    notificationTitle: notice.title,
-                    notificationText: notice.text,
-                    notificationChannelName: notice.channelName,
-                    // Fixes keep coming with the screen off.
-                    enableWakeLock: true,
-                    setOngoing: true,
-                  ),
-          )
-        : const LocationSettings(),
-  );
+  Stream<LocationFix> fixes({RecordingNotice? notice}) =>
+      Geolocator.getPositionStream(
+        locationSettings: defaultTargetPlatform == TargetPlatform.android
+            ? AndroidSettings(
+                intervalDuration: const Duration(seconds: 1),
+                forceLocationManager: true,
+                foregroundNotificationConfig: notice == null
+                    ? null
+                    : ForegroundNotificationConfig(
+                        notificationTitle: notice.title,
+                        notificationText: notice.text,
+                        notificationChannelName: notice.channelName,
+                        // Fixes keep coming with the screen off.
+                        enableWakeLock: true,
+                        setOngoing: true,
+                      ),
+              )
+            : const LocationSettings(),
+      ).map(_fix);
 
   static LocationFix _fix(Position p) => LocationFix(
     lat: p.latitude,

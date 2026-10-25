@@ -32,6 +32,9 @@ class Harness {
   final AdminBoundaries? caop;
   final location = FakeLocationSource();
 
+  /// Battery level in %, for the walk mode warning.
+  int battery = 80;
+
   final MemorySettingsRepository settings;
   final MemoryDeviceRepository device;
   final tiles = FakeTileProvider();
@@ -67,6 +70,7 @@ class Harness {
           tileRetryWaitProvider.overrideWithValue((_) async {}),
           browseCacheProvider.overrideWithValue(browseCache),
           locationSourceProvider.overrideWithValue(location),
+          batteryLevelProvider.overrideWithValue(() async => battery),
           adminBoundariesProvider.overrideWithValue(
             AsyncData(caop ?? _noBoundaries),
           ),

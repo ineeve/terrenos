@@ -462,5 +462,84 @@
         "type": "String"
       }
     }
+  },
+  "walkStart": "Walk with GPS",
+  "walkStop": "Stop walking",
+  "walkAddPoint": "Add point",
+  "walkAtEnd": "At the end",
+  "walkAfter": "After {label}",
+  "walkNearestEdge": "Nearest edge",
+  "walkAveraging": "{seconds, plural, =1{1 second left} other{{seconds} seconds left}} · {fixes} fixes. Tap to cancel.",
+  "walkNoGps": "No GPS",
+  "walkAccuracy": "±{metres} m",
+  "walkNoFix": "No GPS position. Move into the open, wait a moment and try again.",
+  "walkCaptured": "{label} added: ±{metres} m from {fixes} fixes.",
+  "walkCapturedImprecise": "{label} added, but imprecise: ±{metres} m. Consider repeating it.",
+  "walkCapturedMocked": "{label} added from a simulated location. It is marked as low confidence.",
+  "walkLowBatteryTitle": "Low battery",
+  "walkLowBatteryBody": "The battery is at {level} %. Walk mode keeps the GPS on and may run it down.",
+  "walkNotificationTitle": "Recording a boundary",
+  "walkNotificationText": "Terrenos is using GPS while you walk the boundary.",
+  "walkNotificationChannel": "Field recording",
+  "@walkAfter": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "@walkAveraging": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      },
+      "fixes": {
+        "type": "int"
+      }
+    }
+  },
+  "@walkAccuracy": {
+    "placeholders": {
+      "metres": {
+        "type": "int"
+      }
+    }
+  },
+  "@walkCaptured": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "metres": {
+        "type": "int"
+      },
+      "fixes": {
+        "type": "int"
+      }
+    }
+  },
+  "@walkCapturedImprecise": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "metres": {
+        "type": "int"
+      }
+    }
+  },
+  "@walkCapturedMocked": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "@walkLowBatteryBody": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
   }
 }
