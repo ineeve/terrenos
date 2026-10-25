@@ -7,8 +7,10 @@ import 'package:terrenos/core/editing/boundary_editor.dart';
 import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/geometry/validation.dart';
+import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/core/model/vertex.dart';
+import 'package:terrenos/core/settings/app_settings.dart';
 import 'package:terrenos/features/vertices/boundary_preview_map.dart';
 import 'package:terrenos/features/vertices/coordinate_entry_page.dart';
 import 'package:terrenos/features/vertices/vertex_table.dart';
@@ -108,7 +110,14 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
 
   Future<void> _finish() async {
     final l10n = AppLocalizations.of(context);
-    final result = GeometryValidator.validate(_editor.parts);
+    final others = [
+      for (final doc
+          in ref.read(propertiesProvider).value ?? const <PropertyDocument>[])
+        if (doc.id != widget.propertyId)
+          if (doc.geometry.current case final current?)
+            (id: doc.id, name: doc.name, parts: current.parts),
+    ];
+    final result = GeometryValidator.validate(_editor.parts, others: others);
     final ok = await confirmIssues(context, result.issues, l10n);
     if (!ok || !mounted) return;
 
@@ -218,6 +227,7 @@ Future<bool> confirmIssues(
   if (issues.isEmpty) return true;
   final errors = issues.where((i) => i.severity == Severity.error).toList();
   final shown = errors.isNotEmpty ? errors : issues;
+  final language = Localizations.localeOf(context).languageCode;
   final proceed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -233,7 +243,7 @@ Future<bool> confirmIssues(
           for (final issue in shown)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: Text('• ${issueText(issue, l10n)}'),
+              child: Text('• ${issueText(issue, l10n, language)}'),
             ),
         ],
       ),
@@ -255,7 +265,11 @@ Future<bool> confirmIssues(
   return proceed ?? false;
 }
 
-String issueText(GeometryIssue issue, AppLocalizations l10n) => switch (issue) {
+String issueText(
+  GeometryIssue issue,
+  AppLocalizations l10n,
+  String languageCode,
+) => switch (issue) {
   TooFewVertices() => l10n.issueTooFew,
   SelfIntersection() => l10n.issueCrossing,
   AreaOutOfRange() => l10n.issueArea,
@@ -265,4 +279,16 @@ String issueText(GeometryIssue issue, AppLocalizations l10n) => switch (issue) {
         : l10n.issueOutside,
   LowConfidenceVertices() => l10n.issueLowAccuracy,
   TooManyVertices() => l10n.issueTooMany,
+  // VAL-7 shows the overlap in m² whatever the area unit.
+  OverlapsProperties(:final overlaps) => [
+    for (final o in overlaps)
+      l10n.issueOverlap(
+        o.name,
+        formatArea(
+          o.areaSquareMetres,
+          AreaUnit.squareMetres,
+          languageCode: languageCode,
+        ),
+      ),
+  ].join('\n'),
 };

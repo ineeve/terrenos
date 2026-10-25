@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:terrenos/core/crdt/hlc.dart';
 import 'package:terrenos/core/crs/coordinates.dart';
 import 'package:terrenos/core/crs/pt_tm06.dart';
 import 'package:terrenos/core/model/documents.dart';
@@ -121,6 +122,58 @@ void main() {
       expect(find.text('No properties match your search.'), findsOneWidget);
     },
   );
+
+  testWidgets('VAL-7: overlapping another property warns with the area', (
+    tester,
+  ) async {
+    final h = Harness(
+      settings: onboarded.copyWith(coordinateFormat: CoordinateFormat.ptTm06),
+    );
+    final existing =
+        PropertyDocument.create(
+          id: 'p1',
+          name: 'Olival',
+          timestamp: const Hlc(1, 0, 'dev'),
+        ).withGeometry([
+          [
+            [
+              for (final (i, (lat, lon)) in const [
+                (40.2000, -8.4300),
+                (40.2000, -8.4290),
+                (40.2010, -8.4290),
+                (40.2010, -8.4300),
+              ].indexed)
+                Vertex(
+                  id: 'o$i',
+                  lon: lon,
+                  lat: lat,
+                  source: VertexSource.typed,
+                ),
+            ],
+          ],
+        ], const Hlc(2, 0, 'dev'));
+    h.properties.documents['p1'] = existing;
+    await h.pump(tester);
+    await tester.pumpAndSettle();
+
+    await _openNewPropertyByCoordinates(tester);
+    for (final c in _corners) {
+      await _typeVertex(tester, _metres(c.m), _metres(c.p));
+    }
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Check before continuing'), findsOneWidget);
+    // The same corners, typed to the centimetre: about 9 475 m².
+    expect(
+      find.textContaining(RegExp(r'Overlaps “Olival” by 9,4\d\d m²\.')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Continue anyway'));
+    await tester.pumpAndSettle();
+    expect(find.text('Property details'), findsOneWidget);
+  });
 
   testWidgets('a positive longitude offers the negative one (§7.5)', (
     tester,

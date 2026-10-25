@@ -60,6 +60,17 @@ abstract final class GeometryService {
     );
   }
 
+  /// The area, in m², that two boundaries share (VAL-7). Neighbours that
+  /// only share a border overlap by 0.
+  static double overlapArea(BoundaryParts a, BoundaryParts b) {
+    final pointsA = _allPoints(a);
+    final pointsB = _allPoints(b);
+    if (pointsA.length < 3 || pointsB.length < 3) return 0;
+    if (!_boundsTouch(pointsA, pointsB)) return 0;
+    final plane = LocalPlane.around([...pointsA, ...pointsB]);
+    return sharedArea(_project(a, plane), _project(b, plane));
+  }
+
   /// Geodesic length of a closed ring.
   static double ringLength(List<Vertex> ring) {
     var length = 0.0;
@@ -241,6 +252,19 @@ List<List<List<Xy>>> _project(BoundaryParts parts, LocalPlane plane) => [
         [for (final v in ring) plane.project(_lonLat(v))],
     ],
 ];
+
+bool _boundsTouch(List<LonLat> a, List<LonLat> b) {
+  double lowest(List<LonLat> p, double Function(LonLat) f) =>
+      p.map(f).reduce(min);
+  double highest(List<LonLat> p, double Function(LonLat) f) =>
+      p.map(f).reduce(max);
+  double lon(LonLat p) => p.lon;
+  double lat(LonLat p) => p.lat;
+  return lowest(a, lon) <= highest(b, lon) &&
+      lowest(b, lon) <= highest(a, lon) &&
+      lowest(a, lat) <= highest(b, lat) &&
+      lowest(b, lat) <= highest(a, lat);
+}
 
 bool _samePosition(Vertex a, Vertex b) => a.lon == b.lon && a.lat == b.lat;
 

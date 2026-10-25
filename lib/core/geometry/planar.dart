@@ -125,6 +125,119 @@ bool containsPoint(List<List<Xy>> rings, Xy p) {
   return inside;
 }
 
+/// The area two polygons share (VAL-7). Each polygon is a list of parts,
+/// each an outer ring followed by holes; rings are open and either
+/// orientation is accepted.
+///
+/// By Green's theorem the shared region's boundary is made of the pieces of
+/// each polygon's edges that lie inside the other, so the area is the sum
+/// of those pieces' shoelace terms. An edge piece lying on the other
+/// polygon's boundary counts once when both run the same way (identical
+/// boundaries) and not at all when they run opposite ways (neighbours that
+/// share a border).
+double sharedArea(List<List<List<Xy>>> a, List<List<List<Xy>>> b) {
+  final edgesA = _orientedEdges(a);
+  final edgesB = _orientedEdges(b);
+  final twice =
+      _insideTerms(edgesA, edgesB, b, countShared: true) +
+      _insideTerms(edgesB, edgesA, a, countShared: false);
+  return twice > 0 ? twice / 2 : 0;
+}
+
+typedef _Edge = ({Xy a, Xy b});
+
+/// Outer rings counter-clockwise and holes clockwise, as Green's theorem
+/// needs.
+List<_Edge> _orientedEdges(List<List<List<Xy>>> polygon) {
+  final edges = <_Edge>[];
+  for (final part in polygon) {
+    for (var r = 0; r < part.length; r++) {
+      final ring = part[r];
+      if (ring.length < 3) continue;
+      final oriented = (signedArea(ring) > 0) == (r == 0)
+          ? ring
+          : ring.reversed.toList();
+      for (var i = 0; i < oriented.length; i++) {
+        edges.add((a: oriented[i], b: oriented[(i + 1) % oriented.length]));
+      }
+    }
+  }
+  return edges;
+}
+
+/// Twice the signed area contributed by the pieces of [edges] inside
+/// [other].
+double _insideTerms(
+  List<_Edge> edges,
+  List<_Edge> otherEdges,
+  List<List<List<Xy>>> other, {
+  required bool countShared,
+}) {
+  final otherRings = [for (final part in other) ...part];
+  var sum = 0.0;
+  for (final edge in edges) {
+    final p = edge.a;
+    final rx = edge.b.x - p.x;
+    final ry = edge.b.y - p.y;
+    final length2 = rx * rx + ry * ry;
+    if (length2 == 0) continue;
+
+    // Where the other polygon's edges cut this one, as fractions along it.
+    final cuts = <double>[0, 1];
+    for (final o in otherEdges) {
+      if (!_boxesTouch(edge, o)) continue;
+      final sx = o.b.x - o.a.x;
+      final sy = o.b.y - o.a.y;
+      final qx = o.a.x - p.x;
+      final qy = o.a.y - p.y;
+      final denominator = rx * sy - ry * sx;
+      if (denominator.abs() > 1e-12 * length2) {
+        final t = (qx * sy - qy * sx) / denominator;
+        final u = (qx * ry - qy * rx) / denominator;
+        if (t > 0 && t < 1 && u >= 0 && u <= 1) cuts.add(t);
+      } else if ((qx * ry - qy * rx).abs() < _epsilon) {
+        // Collinear: the other edge's ends split this one.
+        for (final end in [o.a, o.b]) {
+          final t = ((end.x - p.x) * rx + (end.y - p.y) * ry) / length2;
+          if (t > 0 && t < 1) cuts.add(t);
+        }
+      }
+    }
+    cuts.sort();
+
+    for (var i = 1; i < cuts.length; i++) {
+      final t0 = cuts[i - 1];
+      final t1 = cuts[i];
+      if (t1 - t0 < 1e-12) continue;
+      final mid = (x: p.x + rx * (t0 + t1) / 2, y: p.y + ry * (t0 + t1) / 2);
+      final shared = otherEdges
+          .where((o) => distanceToSegmentSquared(mid, o.a, o.b) < 1e-12)
+          .firstOrNull;
+      final bool inside;
+      if (shared != null) {
+        final sameWay =
+            (shared.b.x - shared.a.x) * rx + (shared.b.y - shared.a.y) * ry > 0;
+        inside = countShared && sameWay;
+      } else {
+        inside = containsPoint(otherRings, mid);
+      }
+      if (!inside) continue;
+      final x0 = p.x + rx * t0;
+      final y0 = p.y + ry * t0;
+      final x1 = p.x + rx * t1;
+      final y1 = p.y + ry * t1;
+      sum += x0 * y1 - x1 * y0;
+    }
+  }
+  return sum;
+}
+
+bool _boxesTouch(_Edge e, _Edge o) =>
+    _min(e.a.x, e.b.x) <= _max(o.a.x, o.b.x) + _epsilon &&
+    _min(o.a.x, o.b.x) <= _max(e.a.x, e.b.x) + _epsilon &&
+    _min(e.a.y, e.b.y) <= _max(o.a.y, o.b.y) + _epsilon &&
+    _min(o.a.y, o.b.y) <= _max(e.a.y, e.b.y) + _epsilon;
+
 /// Collinearity tolerance in square metres: 1 mm × 1 m.
 const _epsilon = 1e-3;
 

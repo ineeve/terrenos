@@ -160,6 +160,17 @@
   "issueSwap": "Latitude and longitude may have been swapped.",
   "issueLowAccuracy": "Some GPS points are imprecise or came from a simulated location.",
   "issueTooMany": "Too many vertices (maximum 5 000).",
+  "issueOverlap": "Overlaps “{name}” by {area}.",
+  "@issueOverlap": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "area": {
+        "type": "String"
+      }
+    }
+  },
   "cannotContinueTitle": "Can’t continue",
   "checkBeforeContinuingTitle": "Check before continuing",
   "detailsTitle": "Property details",

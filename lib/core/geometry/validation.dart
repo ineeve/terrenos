@@ -1,7 +1,7 @@
 /// Boundary validation rules VAL-1 to VAL-9 (SPEC.md §3.5).
 ///
-/// Overlap with other properties (VAL-7) needs the other properties and is
-/// checked separately.
+/// Overlap with other properties (VAL-7) is checked when the caller passes
+/// them in.
 library;
 
 import 'package:meta/meta.dart';
@@ -94,6 +94,22 @@ final class OutsidePortugal extends GeometryIssue {
   Severity get severity => Severity.warning;
 }
 
+/// VAL-7: the boundary overlaps other properties on this phone.
+final class OverlapsProperties extends GeometryIssue {
+  const new(this.overlaps);
+
+  /// Smaller overlaps are drawing noise between neighbours, not a conflict.
+  static const minSquareMetres = 1.0;
+
+  final List<({String id, String name, double areaSquareMetres})> overlaps;
+
+  @override
+  Severity get severity => Severity.warning;
+}
+
+/// Another property to check for overlaps (VAL-7).
+typedef OtherProperty = ({String id, String name, BoundaryParts parts});
+
 /// VAL-8: GPS vertices that are imprecise or came from a mock location.
 final class LowConfidenceVertices extends GeometryIssue {
   const new({required this.imprecise, required this.mocked});
@@ -143,6 +159,7 @@ abstract final class GeometryValidator {
   static ValidationResult validate(
     BoundaryParts parts, {
     double accuracyThresholdMetres = defaultAccuracyThresholdMetres,
+    Iterable<OtherProperty> others = const [],
   }) {
     final cleaned = GeometryService.withoutDuplicates(parts);
     final removed = _count(parts) - _count(cleaned);
@@ -205,6 +222,16 @@ abstract final class GeometryValidator {
       if (area < AreaOutOfRange.minSquareMetres ||
           area > AreaOutOfRange.maxSquareMetres) {
         issues.add(AreaOutOfRange(area));
+      }
+      if (crossings.isEmpty) {
+        final overlaps = [
+          for (final other in others)
+            if (GeometryService.overlapArea(cleaned, other.parts)
+                case final overlap
+                when overlap >= OverlapsProperties.minSquareMetres)
+              (id: other.id, name: other.name, areaSquareMetres: overlap),
+        ];
+        if (overlaps.isNotEmpty) issues.add(OverlapsProperties(overlaps));
       }
     }
 

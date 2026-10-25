@@ -89,6 +89,7 @@
   "issueSwap": "A latitude e a longitude podem estar trocadas.",
   "issueLowAccuracy": "Alguns pontos GPS são imprecisos ou vieram de uma localização simulada.",
   "issueTooMany": "Demasiados vértices (máximo 5000).",
+  "issueOverlap": "Sobrepõe-se a “{name}” em {area}.",
   "cannotContinueTitle": "Não é possível continuar",
   "checkBeforeContinuingTitle": "Verifique antes de continuar",
   "detailsTitle": "Dados do terreno",
