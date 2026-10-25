@@ -70,66 +70,77 @@ class PropertyDetailPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          if (number != null)
-            // IDN-7: long-press copies the official ID.
-            GestureDetector(
-              onLongPress: () => Clipboard.setData(ClipboardData(text: number)),
-              child: Text(
-                l10n.processNumberShort(number),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-          if (type != null || landUse != null)
-            Text(
-              [
-                if (type != null) propertyTypeLabel(type, l10n),
-                if (landUse != null) landUseLabel(landUse, l10n),
-              ].join(' · '),
-            ),
-          const SizedBox(height: 12),
-          if (current != null)
-            BoundaryPreviewMap(parts: current.parts, height: 240),
-          const SizedBox(height: 12),
-          if (measurements != null) ...[
-            _Fact(
-              label: l10n.propertyArea,
-              value: formatArea(
-                measurements.areaSquareMetres,
-                unit,
-                languageCode: language,
-              ),
-            ),
-            _Fact(
-              label: l10n.propertyPerimeter,
-              value: formatLength(
-                measurements.perimeterMetres,
-                languageCode: language,
-              ),
-            ),
-          ],
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  l10n.propertyVertices,
-                  style: Theme.of(context).textTheme.titleMedium,
+      body: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            sliver: SliverList.list(
+              children: [
+                if (number != null)
+                  // IDN-7: long-press copies the official ID.
+                  GestureDetector(
+                    onLongPress: () =>
+                        Clipboard.setData(ClipboardData(text: number)),
+                    child: Text(
+                      l10n.processNumberShort(number),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                if (type != null || landUse != null)
+                  Text(
+                    [
+                      if (type != null) propertyTypeLabel(type, l10n),
+                      if (landUse != null) landUseLabel(landUse, l10n),
+                    ].join(' · '),
+                  ),
+                const SizedBox(height: 12),
+                if (current != null)
+                  BoundaryPreviewMap(parts: current.parts, height: 240),
+                const SizedBox(height: 12),
+                if (measurements != null) ...[
+                  _Fact(
+                    label: l10n.propertyArea,
+                    value: formatArea(
+                      measurements.areaSquareMetres,
+                      unit,
+                      languageCode: language,
+                    ),
+                  ),
+                  _Fact(
+                    label: l10n.propertyPerimeter,
+                    value: formatLength(
+                      measurements.perimeterMetres,
+                      languageCode: language,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.propertyVertices,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () =>
+                          context.push(Routes.propertyBoundary(id)),
+                      icon: const Icon(Icons.edit_location_alt),
+                      label: Text(l10n.editBoundaryTitle),
+                    ),
+                  ],
                 ),
-              ),
-              TextButton.icon(
-                onPressed: () => context.push(Routes.propertyBoundary(id)),
-                icon: const Icon(Icons.edit_location_alt),
-                label: Text(l10n.editBoundaryTitle),
-              ),
-            ],
+                if (vertices.isNotEmpty) SurveyProgress(vertices: vertices),
+              ],
+            ),
           ),
-          if (vertices.isNotEmpty) SurveyProgress(vertices: vertices),
-          VertexRows(
-            vertices: vertices,
-            vertexInfo: property.vertexInfo.values,
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            sliver: VertexRows(
+              vertices: vertices,
+              vertexInfo: property.vertexInfo.values,
+            ),
           ),
         ],
       ),

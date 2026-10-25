@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrenos/app/app.dart';
@@ -77,6 +77,20 @@ class Harness {
 }
 
 const onboarded = AppSettings(onboardingComplete: true);
+
+/// Scrolls the vertex table until [label] (e.g. `V5`) is built: the table
+/// only builds the rows on screen.
+Future<void> scrollToVertex(WidgetTester tester, String label) =>
+    tester.scrollUntilVisible(
+      find.text(label),
+      100,
+      scrollable: find
+          .descendant(
+            of: find.byType(CustomScrollView).last,
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
 
 final _noBoundaries = AdminBoundaries(
   edition: caopEdition,

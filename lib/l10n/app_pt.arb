@@ -192,5 +192,9 @@
   "draftResumeEdit": "Estava a alterar os limites de “{name}”. Quer continuar onde ficou?",
   "vertexSameAs": "Mesma posição que {label}. Seria removido ao guardar.",
   "vertexCrosses": "Com este vértice, os limites cruzam-se.",
-  "vertexInsertBetween": "Inserir entre {first} e {second}"
+  "vertexInsertBetween": "Inserir entre {first} e {second}",
+  "actionSimplify": "Simplificar",
+  "actionSwapCoordinates": "Trocar as coordenadas",
+  "simplifiedTo": "Simplificado para {count} vértices, sem pormenores menores que {tolerance}. Verifique e guarde de novo.",
+  "vertexLowConfidence": "Pouco fiável: GPS impreciso ou simulado"
 }

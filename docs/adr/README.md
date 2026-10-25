@@ -13,3 +13,4 @@ was decided, why, and what it affects. Numbered in order; never renumbered.
 | [0006](0006-offline-areas-up-to-4-km2.md) | Offline areas up to 4 km², 8 requests at a time |
 | [0007](0007-caop-asset-as-shared-boundary-lines.md) | CAOP asset as shared boundary lines (spike S3) |
 | [0008](0008-location-with-geolocator.md) | Location with geolocator; asked for only on request |
+| [0009](0009-ring-orientation-on-export.md) | Ring orientation is fixed on export, not in storage |

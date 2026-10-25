@@ -7,6 +7,7 @@ import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/app/router.dart';
 import 'package:terrenos/core/editing/boundary_draft.dart';
 import 'package:terrenos/core/editing/boundary_editor.dart';
+import 'package:terrenos/core/editing/boundary_fixes.dart';
 import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/geometry/validation.dart';
@@ -45,6 +46,9 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
   late bool _dirty = _resumed != null;
   String? _selectedId;
 
+  /// Edges that crossed when saving was last tried (VAL-2).
+  List<Crossing> _crossings = const [];
+
   /// The vertex being dragged on the map, before the move is committed.
   ({String id, DrawPosition at})? _drag;
 
@@ -68,6 +72,7 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
     setState(() {
       edit();
       _dirty = true;
+      _crossings = const [];
     });
     final drafts = ref.read(draftStorageProvider);
     final key = widget.propertyId ?? BoundaryDraft.newProperty;
@@ -223,8 +228,51 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
             (id: doc.id, name: doc.name, parts: current.parts),
     ];
     final result = GeometryValidator.validate(_editor.parts, others: others);
-    final ok = await confirmIssues(context, result.issues, l10n);
-    if (!ok || !mounted) return;
+    // Crossing edges stay red until the next change (VAL-2).
+    setState(() {
+      _crossings = [
+        for (final issue in result.issues.whereType<SelfIntersection>())
+          ...issue.crossings,
+      ];
+    });
+    final choice = await confirmIssues(context, result.issues, l10n);
+    if (!mounted) return;
+    switch (choice) {
+      case IssueChoice.cancel:
+        return;
+      case IssueChoice.swap:
+        final ids = {
+          for (final issue in result.issues.whereType<OutsidePortugal>())
+            ...issue.vertexIds,
+        };
+        _change(() => _editor.replaceAll(swapCoordinates(_editor.parts, ids)));
+        await _finish();
+        return;
+      case IssueChoice.simplify:
+        final fit = simplifyToFit(result.parts);
+        _change(() => _editor.replaceAll(fit.parts));
+        final count = fit.parts.fold(
+          0,
+          (sum, part) => sum + part.fold(0, (s, r) => s + r.length),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.simplifiedTo(
+                count,
+                formatLength(
+                  fit.toleranceMetres,
+                  languageCode: Localizations.localeOf(context).languageCode,
+                ),
+              ),
+            ),
+          ),
+        );
+        return;
+      case IssueChoice.proceed:
+        break;
+    }
+    if (!mounted) return;
 
     final id = widget.propertyId;
     if (id == null) {
@@ -337,16 +385,32 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
         ),
         body: _onMap
             ? _mapView(shown, l10n, language)
-            : ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                children: [
-                  BoundaryPreviewMap(parts: shown, highlightId: _selectedId),
-                  if (ring.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    SurveyProgress(vertices: ring),
-                  ],
-                  const Divider(),
-                  VertexRows(vertices: ring, onTap: (v, _) => _actions(v)),
+            : CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    sliver: SliverList.list(
+                      children: [
+                        BoundaryPreviewMap(
+                          parts: shown,
+                          highlightId: _selectedId,
+                          crossings: _crossings,
+                        ),
+                        if (ring.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          SurveyProgress(vertices: ring),
+                        ],
+                        const Divider(),
+                      ],
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+                    sliver: VertexRows(
+                      vertices: ring,
+                      onTap: (v, _) => _actions(v),
+                    ),
+                  ),
                 ],
               ),
         floatingActionButton: _onMap
@@ -410,6 +474,7 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
         DrawMap(
           parts: shown,
           selectedId: _selectedId,
+          crossings: _crossings,
           propertyId: widget.propertyId,
           onAdd: _addOnMap,
           onSelect: (id) => setState(() => _selectedId = id),
@@ -471,52 +536,73 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
   }
 }
 
-/// Shows validation problems. Errors block (returns `false`); warnings ask
-/// for confirmation (VAL-*, SPEC.md §3.5).
-Future<bool> confirmIssues(
+/// What the user chose after seeing validation problems.
+enum IssueChoice {
+  /// Back to editing; errors always end here unless a fix is offered.
+  cancel,
+
+  /// Save despite the warnings.
+  proceed,
+
+  /// Swap the coordinates of the vertices outside Portugal (VAL-6).
+  swap,
+
+  /// Simplify to the vertex limit (VAL-9).
+  simplify,
+}
+
+/// Shows validation problems. Errors block; warnings ask for confirmation;
+/// both offer a fix where there is one (VAL-*, SPEC.md §3.5).
+Future<IssueChoice> confirmIssues(
   BuildContext context,
   List<GeometryIssue> issues,
   AppLocalizations l10n,
 ) async {
-  if (issues.isEmpty) return true;
+  if (issues.isEmpty) return IssueChoice.proceed;
   final errors = issues.where((i) => i.severity == Severity.error).toList();
   final shown = errors.isNotEmpty ? errors : issues;
   final language = Localizations.localeOf(context).languageCode;
-  final proceed = await showDialog<bool>(
+  final canSimplify = errors.any((i) => i is TooManyVertices);
+  final canSwap =
+      errors.isEmpty &&
+      issues.any((i) => i is OutsidePortugal && i.swapLooksRight);
+  final choice = await showDialog<IssueChoice>(
     context: context,
-    builder: (context) => AlertDialog(
-      title: Text(
-        errors.isNotEmpty
-            ? l10n.cannotContinueTitle
-            : l10n.checkBeforeContinuingTitle,
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final issue in shown)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text('• ${issueText(issue, l10n, language)}'),
-            ),
-        ],
-      ),
-      actions: [
-        if (errors.isEmpty)
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.actionCancel),
-          ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(errors.isEmpty),
-          child: Text(
-            errors.isEmpty ? l10n.actionContinueAnyway : l10n.actionOk,
-          ),
+    builder: (context) {
+      Widget button(IssueChoice choice, String label) => TextButton(
+        onPressed: () => Navigator.of(context).pop(choice),
+        child: Text(label),
+      );
+      return AlertDialog(
+        title: Text(
+          errors.isNotEmpty
+              ? l10n.cannotContinueTitle
+              : l10n.checkBeforeContinuingTitle,
         ),
-      ],
-    ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final issue in shown)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text('• ${issueText(issue, l10n, language)}'),
+              ),
+          ],
+        ),
+        actions: [
+          if (canSimplify) button(IssueChoice.simplify, l10n.actionSimplify),
+          if (canSwap) button(IssueChoice.swap, l10n.actionSwapCoordinates),
+          if (errors.isEmpty) ...[
+            button(IssueChoice.cancel, l10n.actionCancel),
+            button(IssueChoice.proceed, l10n.actionContinueAnyway),
+          ] else
+            button(IssueChoice.cancel, l10n.actionOk),
+        ],
+      );
+    },
   );
-  return proceed ?? false;
+  return choice ?? IssueChoice.cancel;
 }
 
 String issueText(

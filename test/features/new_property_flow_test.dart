@@ -257,7 +257,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Delete the last vertex, then undo the deletion.
-    await tester.ensureVisible(find.text('V4'));
+    await scrollToVertex(tester, 'V4');
     await tester.pumpAndSettle();
     await tester.tap(find.text('V4'));
     await tester.pumpAndSettle();

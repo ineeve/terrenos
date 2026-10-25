@@ -383,5 +383,19 @@
         "type": "String"
       }
     }
+  },
+  "actionSimplify": "Simplify",
+  "actionSwapCoordinates": "Swap the coordinates",
+  "simplifiedTo": "Simplified to {count} vertices, removing detail smaller than {tolerance}. Check it and save again.",
+  "vertexLowConfidence": "Low confidence: imprecise or simulated GPS",
+  "@simplifiedTo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "tolerance": {
+        "type": "String"
+      }
+    }
   }
 }

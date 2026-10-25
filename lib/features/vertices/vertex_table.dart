@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terrenos/app/providers.dart';
+import 'package:terrenos/core/editing/boundary_fixes.dart';
 import 'package:terrenos/core/model/vertex.dart';
 import 'package:terrenos/features/vertices/vertex_format.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
@@ -23,8 +24,9 @@ class SurveyProgress extends StatelessWidget {
 }
 
 /// One row per vertex: label, coordinates in the user's format, source,
-/// and planned/surveyed status (VTX-2). Built as a list of tiles so it can
-/// sit inside a parent scroll view.
+/// and planned/surveyed status (VTX-2). A sliver that builds only the rows
+/// on screen, so a boundary at the 5 000-vertex limit (VAL-9) still scrolls
+/// smoothly; place it in a [CustomScrollView].
 class VertexRows extends ConsumerWidget {
   const new({
     required this.vertices,
@@ -44,11 +46,15 @@ class VertexRows extends ConsumerWidget {
       settingsProvider.select((s) => s.coordinateFormat),
     );
     final language = Localizations.localeOf(context).languageCode;
-    return Column(
-      children: [
-        for (final (i, v) in vertices.indexed)
-          _row(context, l10n, v, i, formatVertex(v, format, language)),
-      ],
+    return SliverList.builder(
+      itemCount: vertices.length,
+      itemBuilder: (context, i) => _row(
+        context,
+        l10n,
+        vertices[i],
+        i,
+        formatVertex(vertices[i], format, language),
+      ),
     );
   }
 
@@ -81,9 +87,24 @@ class VertexRows extends ConsumerWidget {
       title: Text(vertexLabel(index, vertexInfo[v.id])),
       subtitle: Text('${coordinates.$1}\n${coordinates.$2}'),
       isThreeLine: true,
-      trailing: Tooltip(
-        message: '$sourceLabel$accuracy',
-        child: Icon(sourceIcon, semanticLabel: '$sourceLabel$accuracy'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // VAL-8: imprecise or mocked GPS.
+          if (isLowConfidence(v))
+            Tooltip(
+              message: l10n.vertexLowConfidence,
+              child: Icon(
+                Icons.warning_amber,
+                color: colours.error,
+                semanticLabel: l10n.vertexLowConfidence,
+              ),
+            ),
+          Tooltip(
+            message: '$sourceLabel$accuracy',
+            child: Icon(sourceIcon, semanticLabel: '$sourceLabel$accuracy'),
+          ),
+        ],
       ),
       onTap: onTap == null ? null : () => onTap!(v, index),
     );

@@ -243,6 +243,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(DrawMap), findsNothing);
     expect(find.text('V1'), findsOneWidget);
+    await scrollToVertex(tester, 'V3');
     expect(find.text('V3'), findsOneWidget);
     expect(find.text('0/3 vertices surveyed'), findsOneWidget);
 
@@ -301,6 +302,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Edit boundary'), findsOneWidget);
       // The draft's four vertices, not the saved three.
+      await scrollToVertex(tester, 'V4');
       expect(find.text('V4'), findsOneWidget);
 
       await tester.tap(find.text('Save'));

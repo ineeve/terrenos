@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/core/geometry/geodesy.dart';
+import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/core/model/vertex.dart';
@@ -30,12 +31,16 @@ class DrawMap extends ConsumerStatefulWidget {
     required this.onInsert,
     required this.onDelete,
     this.propertyId,
+    this.crossings = const [],
     super.key,
   });
 
   /// The boundary as shown, including any vertex being dragged.
   final BoundaryParts parts;
   final String? selectedId;
+
+  /// Edges drawn in red because they cross (VAL-2).
+  final List<Crossing> crossings;
 
   /// The property being edited; its saved boundary isn't a snap target.
   final String? propertyId;
@@ -156,6 +161,10 @@ class _DrawMapState extends ConsumerState<DrawMap> {
       for (final part in widget.parts)
         for (final ring in part) ring,
     ];
+    final byId = {
+      for (final ring in rings)
+        for (final v in ring) v.id: v,
+    };
 
     return Stack(
       children: [
@@ -187,6 +196,17 @@ class _DrawMapState extends ConsumerState<DrawMap> {
               ),
               PolylineLayer(
                 polylines: [
+                  for (final c in widget.crossings)
+                    for (final (a, b) in [c.first, c.second])
+                      if ((byId[a], byId[b]) case (final va?, final vb?))
+                        Polyline(
+                          points: [
+                            LatLng(va.lat, va.lon),
+                            LatLng(vb.lat, vb.lon),
+                          ],
+                          color: Colors.redAccent,
+                          strokeWidth: 5,
+                        ),
                   for (final ring in rings)
                     if (ring.length == 2)
                       Polyline(

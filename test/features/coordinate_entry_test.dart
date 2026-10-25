@@ -122,6 +122,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // It went in as the third vertex, so the boundary is valid.
+    await scrollToVertex(tester, 'V5');
     expect(find.text('V5'), findsOneWidget);
     await tester.tap(find.text('Next'));
     await tester.pumpAndSettle();
