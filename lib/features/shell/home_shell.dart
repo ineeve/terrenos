@@ -1,18 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:terrenos/app/providers.dart';
+import 'package:terrenos/app/router.dart';
+import 'package:terrenos/core/editing/drafts.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
 /// Bottom navigation: Mapa · Terrenos · Grupos · Definições (SPEC.md §4).
-class HomeShell extends StatelessWidget {
+class HomeShell extends ConsumerWidget {
   const new({required this.shell, super.key});
 
   final StatefulNavigationShell shell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final drafts = ref.watch(draftsProvider).value ?? const [];
     return Scaffold(
-      body: shell,
+      body: Column(
+        children: [
+          if (drafts.isNotEmpty) _DraftBanner(draft: drafts.first),
+          Expanded(child: shell),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: shell.currentIndex,
         onDestinationSelected: (index) => shell.goBranch(
@@ -40,6 +50,48 @@ class HomeShell extends StatelessWidget {
             icon: const Icon(Icons.settings_outlined),
             selectedIcon: const Icon(Icons.settings),
             label: l10n.navSettings,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Offers to resume a boundary that wasn't finished, e.g. because the app
+/// was closed or crashed while editing (REG-12).
+class _DraftBanner extends ConsumerWidget {
+  const new({required this.draft});
+
+  final BoundaryDraft draft;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    Future<void> discard() async {
+      await ref.read(draftStorageProvider).delete(draft.id);
+      ref.invalidate(draftsProvider);
+    }
+
+    return SafeArea(
+      bottom: false,
+      child: MaterialBanner(
+        leading: const Icon(Icons.edit_note),
+        content: Text(l10n.draftBanner('${draft.vertexCount}')),
+        actions: [
+          TextButton(onPressed: discard, child: Text(l10n.actionDiscard)),
+          FilledButton(
+            onPressed: () async {
+              final id = draft.propertyId;
+              if (id == null) {
+                await context.push(Routes.newPropertyCoordinates, extra: draft);
+              } else if (ref.read(propertyProvider(id)) == null) {
+                // The property was deleted since; nothing to resume.
+                await discard();
+              } else {
+                await context.push(Routes.propertyBoundary(id), extra: draft);
+              }
+            },
+            child: Text(l10n.actionResume),
           ),
         ],
       ),

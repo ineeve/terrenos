@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/misc.dart' show ProviderFamily;
 import 'package:terrenos/core/caop/caop.dart';
 import 'package:terrenos/core/crdt/hlc.dart';
 import 'package:terrenos/core/device/device_identity.dart';
+import 'package:terrenos/core/editing/drafts.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/properties/property_repository.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
@@ -133,3 +134,13 @@ final caopOrNullProvider = FutureProvider<Caop?>((ref) async {
     return null;
   }
 });
+
+final draftStorageProvider = Provider<DraftStorage>(
+  (ref) => throw UnimplementedError('Overridden at start-up'),
+);
+
+/// Unfinished boundary edits (REG-12), newest first. Invalidate after
+/// saving or deleting a draft.
+final draftsProvider = FutureProvider<List<BoundaryDraft>>(
+  (ref) => ref.watch(draftStorageProvider).loadAll(),
+);

@@ -17,14 +17,21 @@ import 'package:terrenos/l10n/gen/app_localizations.dart';
 /// first; only name, type and land use are required (D16); the optional
 /// sections start collapsed.
 class PropertyDetailsFormPage extends ConsumerStatefulWidget {
-  const new create({required BoundaryParts this.boundary, super.key})
-    : propertyId = null;
+  const new create({
+    required BoundaryParts this.boundary,
+    this.draftId,
+    super.key,
+  }) : propertyId = null;
 
   const new edit({required String this.propertyId, super.key})
-    : boundary = null;
+    : boundary = null,
+      draftId = null;
 
   final BoundaryParts? boundary;
   final String? propertyId;
+
+  /// The editor's draft, deleted once the property is saved (REG-12).
+  final String? draftId;
 
   @override
   ConsumerState<PropertyDetailsFormPage> createState() =>
@@ -224,6 +231,10 @@ class _PropertyDetailsFormPageState
         for (final MapEntry(:key, :value) in fields.entries) key: ?value,
       },
     );
+    if (widget.draftId case final draftId?) {
+      await ref.read(draftStorageProvider).delete(draftId);
+      ref.invalidate(draftsProvider);
+    }
     if (!mounted) return;
     context.go(Routes.properties);
     await context.push(Routes.property(doc.id));

@@ -258,5 +258,18 @@
       }
     }
   },
-  "noValue": "—"
+  "noValue": "—",
+  "draftBanner": "You have an unfinished boundary ({count} vertices).",
+  "actionResume": "Resume",
+  "actionDiscard": "Discard",
+  "discardTitle": "Discard this boundary?",
+  "discardBody": "The changes you made to the vertices will be lost.",
+  "actionKeepEditing": "Keep editing",
+  "@draftBanner": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  }
 }

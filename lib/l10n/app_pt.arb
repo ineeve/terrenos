@@ -173,5 +173,11 @@
   "actionClearDate": "Limpar data",
   "fieldNotes": "Observações",
   "textTooLong": "Use no máximo {max} carateres.",
-  "noValue": "—"
+  "noValue": "—",
+  "draftBanner": "Tem um limite por terminar ({count} vértices).",
+  "actionResume": "Retomar",
+  "actionDiscard": "Descartar",
+  "discardTitle": "Descartar este limite?",
+  "discardBody": "As alterações que fez aos vértices serão perdidas.",
+  "actionKeepEditing": "Continuar a editar"
 }

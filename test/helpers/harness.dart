@@ -8,6 +8,7 @@ import 'package:terrenos/app/app.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/core/caop/caop.dart';
 import 'package:terrenos/core/device/device_identity.dart';
+import 'package:terrenos/core/editing/drafts.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
 import 'package:terrenos/core/storage/app_directories.dart';
@@ -26,6 +27,7 @@ class Harness {
   final MemoryDeviceRepository device;
   final tiles = FakeTileProvider();
   final properties = MemoryDocumentStorage<PropertyDocument>((d) => d.id);
+  final drafts = MemoryDraftStorage();
 
   Future<void> pump(WidgetTester tester, {Locale phone = const Locale('en')}) {
     tester.platformDispatcher.localeTestValue = phone;
@@ -42,6 +44,7 @@ class Harness {
           imageryTileProviderProvider.overrideWithValue(tiles),
           propertyStorageProvider.overrideWithValue(properties),
           caopProvider.overrideWith((ref) async => testCaop),
+          draftStorageProvider.overrideWithValue(drafts),
         ],
         child: const TerrenosApp(),
       ),

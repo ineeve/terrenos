@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:terrenos/app/providers.dart';
+import 'package:terrenos/core/editing/drafts.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/features/editor/boundary_editor_page.dart';
 import 'package:terrenos/features/groups/groups_page.dart';
@@ -14,6 +15,9 @@ import 'package:terrenos/features/properties/property_detail_page.dart';
 import 'package:terrenos/features/properties/property_details_form_page.dart';
 import 'package:terrenos/features/settings/settings_page.dart';
 import 'package:terrenos/features/shell/home_shell.dart';
+
+/// What the boundary editor hands to the details form for a new property.
+typedef NewPropertyBoundary = ({BoundaryParts parts, String? draftId});
 
 abstract final class Routes {
   static const welcomeLanguage = '/welcome/language';
@@ -69,12 +73,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: Routes.newPropertyCoordinates,
-        builder: (context, state) => const BoundaryEditorPage(),
+        builder: (context, state) =>
+            BoundaryEditorPage(draft: state.extra as BoundaryDraft?),
       ),
       GoRoute(
         path: Routes.newPropertyDetails,
         builder: (context, state) => PropertyDetailsFormPage.create(
-          boundary: state.extra! as BoundaryParts,
+          boundary: (state.extra! as NewPropertyBoundary).parts,
+          draftId: (state.extra! as NewPropertyBoundary).draftId,
         ),
       ),
       GoRoute(
@@ -90,8 +96,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: 'boundary',
-            builder: (context, state) =>
-                BoundaryEditorPage(propertyId: state.pathParameters['id']),
+            builder: (context, state) => BoundaryEditorPage(
+              propertyId: state.pathParameters['id'],
+              draft: state.extra as BoundaryDraft?,
+            ),
           ),
         ],
       ),
