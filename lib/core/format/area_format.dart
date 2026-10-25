@@ -36,3 +36,12 @@ String formatArea(
     AreaUnit.hectaresAndSquareMetres => '${ha()} (${m2()})',
   };
 }
+
+/// Lengths in metres with one decimal, e.g. `384,6 m` (PT) or `384.6 m`.
+String formatLength(double metres, {required String languageCode}) {
+  final number = NumberFormat.decimalPatternDigits(
+    locale: numberLocaleFor(languageCode),
+    decimalDigits: 1,
+  ).format(metres);
+  return '$number m';
+}
