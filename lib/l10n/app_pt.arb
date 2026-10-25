@@ -163,6 +163,8 @@
   "offlineFrameHint": "Mova e amplie o mapa até a moldura cobrir a área de que precisa.",
   "offlineFrameTooLarge": "Demasiado grande: o máximo é {max}. Amplie o mapa.",
   "offlineFrameEstimate": "{count} mosaicos, cerca de {size}",
+  "aboutMapData": "Dados do mapa",
+  "aboutMapDataSources": "Ortofotos © DGT. Limites administrativos: CAOP {year} © DGT, CC BY.",
   "offlineNameTitle": "Dê um nome a esta área",
   "offlineNameDefault": "Área {number}"
 }

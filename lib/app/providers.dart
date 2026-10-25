@@ -2,8 +2,12 @@
 /// through overrides.
 library;
 
+import 'dart:isolate';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderFamily;
+import 'package:terrenos/core/caop/admin_boundaries.dart';
 import 'package:terrenos/core/crdt/hlc.dart';
 import 'package:terrenos/core/device/device_identity.dart';
 import 'package:terrenos/core/map/browse_cache.dart';
@@ -45,6 +49,13 @@ final tileFetcherProvider = Provider<TileFetcher>((ref) {
 final browseCacheProvider = Provider<BrowseCache>(
   (ref) => FlutterMapBrowseCache(),
 );
+
+/// Distritos, concelhos and freguesias from the bundled CAOP asset (§6.2),
+/// parsed in a background isolate on first use.
+final adminBoundariesProvider = FutureProvider<AdminBoundaries>((ref) async {
+  final text = await rootBundle.loadString(caopAsset, cache: false);
+  return await Isolate.run(() => AdminBoundaries.parse(text));
+});
 
 /// File storage for properties; `decode` runs in a background isolate.
 DocumentStore<PropertyDocument> propertyFileStore(AppDirectories dirs) =>

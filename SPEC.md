@@ -520,8 +520,9 @@ file. The user can choose to share it through the share sheet from the About scr
 - **CAOP** (Carta Administrativa Oficial de Portugal, DGT, latest edition) for mainland Portugal
   (*Continente*): distritos, concelhos, freguesias.
 - Prepared at build time with a script (`tool/build_caop.dart` or mapshaper): reprojected to
-  WGS84, simplified (~10 m tolerance), and stored as a compact GeoJSON asset with a precomputed
-  bounding-box index. Budget: ≤ 8 MB in the APK.
+  WGS84, simplified (~10 m tolerance), and stored as a compact JSON asset of shared boundary
+  lines with a precomputed bounding-box index ([ADR 0007](docs/adr/0007-caop-asset-as-shared-boundary-lines.md)).
+  Budget: ≤ 8 MB in the APK.
 - Used for: the map overlay, filling in location fields automatically (point-in-polygon on the
   property's interior point), and offline place search.
 - Attribution in About, with the CAOP edition year.

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/app/router.dart';
+import 'package:terrenos/core/caop/admin_boundaries.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
 import 'package:terrenos/features/onboarding/device_name_page.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
@@ -124,6 +125,11 @@ class SettingsPage extends ConsumerWidget {
             title: Text(l10n.settingsAbout),
             subtitle: Text('${l10n.aboutPrivacy}\n${l10n.aboutDisclaimer}'),
             isThreeLine: true,
+          ),
+          ListTile(
+            leading: const Icon(Icons.map_outlined),
+            title: Text(l10n.aboutMapData),
+            subtitle: Text(l10n.aboutMapDataSources('$caopEdition')),
           ),
           ListTile(
             leading: const Icon(Icons.description_outlined),

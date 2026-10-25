@@ -28,8 +28,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   glados: ^1.1.7
+  # Reads the CAOP GeoPackage in tool/build_caop.dart; not part of the app.
+  sqlite3: ^2.9.4
   very_good_analysis: ^11.0.0
 
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/caop/caop.json

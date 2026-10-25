@@ -299,6 +299,15 @@
       }
     }
   },
+  "aboutMapData": "Map data",
+  "aboutMapDataSources": "Orthophotos © DGT. Administrative boundaries: CAOP {year} © DGT, CC BY.",
+  "@aboutMapDataSources": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
   "offlineNameTitle": "Name this area",
   "offlineNameDefault": "Area {number}",
   "@offlineNameDefault": {
