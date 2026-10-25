@@ -422,7 +422,7 @@ dependency, so they can be fully unit-tested.
 | Projections | `proj4dart` | WGS84 ⇄ PT-TM06 (EPSG:3763) |
 | State | `flutter_riverpod` (+ generator) | |
 | Routing | `go_router` | |
-| Models | `freezed` + `json_serializable` | |
+| Models | Hand-written immutable classes for synced documents | Exact JSON shape matters for hashing ([ADR 0001](docs/adr/0001-hand-written-document-models.md)) |
 | Storage | `path_provider`, `dart:io` | JSON files (§8) |
 | Secrets | `flutter_secure_storage` | Group keys in Keystore-backed storage |
 | Crypto | `cryptography` | AES-256-GCM, HKDF, HMAC-SHA256, Argon2id, SHA-256 |
@@ -1059,7 +1059,7 @@ terrenos/
 ├── android/                         # incl. Kotlin Nearby platform channel (prod flavour only)
 ├── assets/caop/                     # simplified CAOP GeoJSON + index
 ├── lib/
-│   ├── main_dev.dart | main_prod.dart
+│   ├── main.dart                    # one entry point; flavours in Gradle (ADR 0002)
 │   ├── app.dart
 │   ├── l10n/                        # app_pt.arb, app_en.arb
 │   ├── core/
