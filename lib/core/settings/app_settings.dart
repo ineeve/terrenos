@@ -21,6 +21,7 @@ class AppSettings {
     this.language,
     this.areaUnit = AreaUnit.hectaresAndSquareMetres,
     this.coordinateFormat = CoordinateFormat.decimalDegrees,
+    this.entryFormat,
     this.onboardingComplete = false,
   });
 
@@ -34,23 +35,32 @@ class AppSettings {
     coordinateFormat:
         _byName(CoordinateFormat.values, json['coordinateFormat']) ??
         CoordinateFormat.decimalDegrees,
+    entryFormat: _byName(CoordinateFormat.values, json['entryFormat']),
     onboardingComplete: json['onboardingComplete'] == true,
   );
 
   final AppLanguage? language;
   final AreaUnit areaUnit;
+
+  /// How coordinates are displayed (SET-4).
   final CoordinateFormat coordinateFormat;
+
+  /// The format last used to type coordinates (VTX-3); `null` until then,
+  /// when typing starts in the display format.
+  final CoordinateFormat? entryFormat;
   final bool onboardingComplete;
 
   AppSettings copyWith({
     AppLanguage? Function()? language,
     AreaUnit? areaUnit,
     CoordinateFormat? coordinateFormat,
+    CoordinateFormat? entryFormat,
     bool? onboardingComplete,
   }) => AppSettings(
     language: language != null ? language() : this.language,
     areaUnit: areaUnit ?? this.areaUnit,
     coordinateFormat: coordinateFormat ?? this.coordinateFormat,
+    entryFormat: entryFormat ?? this.entryFormat,
     onboardingComplete: onboardingComplete ?? this.onboardingComplete,
   );
 
@@ -59,6 +69,7 @@ class AppSettings {
     'language': language?.name,
     'areaUnit': areaUnit.name,
     'coordinateFormat': coordinateFormat.name,
+    'entryFormat': entryFormat?.name,
     'onboardingComplete': onboardingComplete,
   };
 
@@ -68,11 +79,17 @@ class AppSettings {
       other.language == language &&
       other.areaUnit == areaUnit &&
       other.coordinateFormat == coordinateFormat &&
+      other.entryFormat == entryFormat &&
       other.onboardingComplete == onboardingComplete;
 
   @override
-  int get hashCode =>
-      Object.hash(language, areaUnit, coordinateFormat, onboardingComplete);
+  int get hashCode => Object.hash(
+    language,
+    areaUnit,
+    coordinateFormat,
+    entryFormat,
+    onboardingComplete,
+  );
 }
 
 T? _byName<T extends Enum>(List<T> values, Object? name) {

@@ -363,5 +363,25 @@
         "type": "String"
       }
     }
+  },
+  "vertexSameAs": "Same position as {label}. It would be removed when saving.",
+  "vertexCrosses": "With this vertex, the boundary crosses itself.",
+  "vertexInsertBetween": "Insert between {first} and {second} instead",
+  "@vertexSameAs": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "@vertexInsertBetween": {
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   }
 }

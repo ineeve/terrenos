@@ -1,33 +1,49 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/core/crs/coordinates.dart';
 import 'package:terrenos/core/crs/pt_tm06.dart';
+import 'package:terrenos/core/editing/vertex_placement.dart';
 import 'package:terrenos/core/geometry/geodesy.dart';
 import 'package:terrenos/core/model/vertex.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
+import 'package:terrenos/features/vertices/boundary_preview_map.dart';
+import 'package:terrenos/features/vertices/vertex_format.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
-/// A typed vertex position, with the input kept exactly as typed.
-typedef TypedCoordinate = ({LonLat position, CoordinateInput input});
+/// A typed vertex position, with the input kept exactly as typed. A new
+/// vertex goes at the end of the ring, or after `afterId` when the user
+/// took the suggestion to avoid a crossing (§7.5).
+typedef TypedCoordinate = ({
+  LonLat position,
+  CoordinateInput input,
+  String? afterId,
+});
 
 /// Typing one vertex's coordinates (VTX-3, SPEC.md §4.1, §7.5): a format
-/// selector, two separate fields, a ± button, inline errors and the
-/// sign/swap suggestions. Returns a [TypedCoordinate] when saved.
+/// selector, two separate fields, a ± button, inline errors, the sign/swap
+/// suggestions, and a preview map with the §7.5 placement checks. Returns a
+/// [TypedCoordinate] when saved.
 class CoordinateEntryPage extends ConsumerStatefulWidget {
-  const new({this.initial, super.key});
+  const new({this.initial, this.ring = const [], super.key});
 
   /// The vertex being edited, if any.
   final Vertex? initial;
 
+  /// The ring the vertex belongs to or is added to, for the preview.
+  final List<Vertex> ring;
+
   static Future<TypedCoordinate?> open(
     BuildContext context, {
     Vertex? vertex,
+    List<Vertex> ring = const [],
   }) => Navigator.of(context).push<TypedCoordinate>(
     MaterialPageRoute(
       fullscreenDialog: true,
-      builder: (_) => CoordinateEntryPage(initial: vertex),
+      builder: (_) => CoordinateEntryPage(initial: vertex, ring: ring),
     ),
   );
 
@@ -37,7 +53,11 @@ class CoordinateEntryPage extends ConsumerStatefulWidget {
 }
 
 class _CoordinateEntryPageState extends ConsumerState<CoordinateEntryPage> {
-  late CoordinateFormat _format = ref.read(settingsProvider).coordinateFormat;
+  // The format last used for typing, remembered apart from the display
+  // format (VTX-3, SET-4).
+  late CoordinateFormat _format = switch (ref.read(settingsProvider)) {
+    final s => s.entryFormat ?? s.coordinateFormat,
+  };
   final _first = TextEditingController();
   final _second = TextEditingController();
   var _submitted = false;
@@ -109,7 +129,7 @@ class _CoordinateEntryPageState extends ConsumerState<CoordinateEntryPage> {
       ? (roundMetres(_a.value!), roundMetres(_b.value!))
       : (roundDegrees(_a.value!), roundDegrees(_b.value!));
 
-  void _save() {
+  void _save({String? afterId}) {
     setState(() => _submitted = true);
     if (!_a.isValid || !_b.isValid) return;
     final (first, second) = _values;
@@ -117,11 +137,20 @@ class _CoordinateEntryPageState extends ConsumerState<CoordinateEntryPage> {
     final input = _format == CoordinateFormat.ptTm06
         ? CoordinateInput(crs: PtTm06.epsg, x: first, y: second)
         : CoordinateInput(crs: 'EPSG:4326', x: second, y: first);
+    final settings = ref.read(settingsProvider.notifier);
+    if (ref.read(settingsProvider).entryFormat != _format) {
+      unawaited(settings.update((s) => s.copyWith(entryFormat: _format)));
+    }
     Navigator.of(context).pop<TypedCoordinate>((
       position: (lon: check.lon, lat: check.lat),
       input: input,
+      afterId: afterId,
     ));
   }
+
+  /// `V3`, or the vertex's position in the ring.
+  String _label(String id) =>
+      vertexLabel(widget.ring.indexWhere((v) => v.id == id), null);
 
   void _toggleSign(TextEditingController controller) {
     final text = controller.text.trim();
@@ -170,6 +199,12 @@ class _CoordinateEntryPageState extends ConsumerState<CoordinateEntryPage> {
     final check = a.isValid && b.isValid
         ? checkPair(_system, _values.$1, _values.$2)
         : null;
+    final placement = check == null || check.outsidePortugal
+        ? null
+        : checkPlacement(widget.ring, (
+            lon: check.lon,
+            lat: check.lat,
+          ), replacingId: widget.initial?.id);
 
     Widget field(
       TextEditingController controller,
@@ -274,6 +309,44 @@ class _CoordinateEntryPageState extends ConsumerState<CoordinateEntryPage> {
                 ),
               ),
             ),
+          // A live pin on the boundary so far (§4.1).
+          if (placement != null || widget.ring.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            BoundaryPreviewMap(
+              parts: [
+                [placement?.ring ?? widget.ring],
+              ],
+              highlightId: placement?.vertexId,
+              crossings: placement?.crossings ?? const [],
+              height: 180,
+            ),
+          ],
+          if (placement?.sameAsId case final sameAs?)
+            _Warning(l10n.vertexSameAs(_label(sameAs))),
+          if (placement != null && placement.crosses)
+            _Warning(
+              l10n.vertexCrosses,
+              action: switch (placement.betterAfterId) {
+                null => null,
+                final after => TextButton(
+                  onPressed: () => _save(afterId: after),
+                  child: Text(
+                    l10n.vertexInsertBetween(
+                      _label(after),
+                      _label(
+                        widget
+                            .ring[(widget.ring.indexWhere(
+                                      (v) => v.id == after,
+                                    ) +
+                                    1) %
+                                widget.ring.length]
+                            .id,
+                      ),
+                    ),
+                  ),
+                ),
+              },
+            ),
           const SizedBox(height: 8),
           Text(
             l10n.coordinateOnlySystems,
@@ -283,4 +356,33 @@ class _CoordinateEntryPageState extends ConsumerState<CoordinateEntryPage> {
       ),
     );
   }
+}
+
+/// A §7.5 placement warning: saving is still allowed.
+class _Warning extends StatelessWidget {
+  const new(this.message, {this.action});
+
+  final String message;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    color: Theme.of(context).colorScheme.tertiaryContainer,
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.warning_amber),
+              const SizedBox(width: 8),
+              Expanded(child: Text(message)),
+            ],
+          ),
+          ?action,
+        ],
+      ),
+    ),
+  );
 }

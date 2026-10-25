@@ -125,11 +125,16 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
   }
 
   Future<void> _add() async {
-    final typed = await CoordinateEntryPage.open(context);
+    final typed = await CoordinateEntryPage.open(context, ring: _editor.ring());
     if (typed == null) return;
     _change(() {
       _selectedId = _editor
-          .add(typed.position, source: VertexSource.typed, input: typed.input)
+          .add(
+            typed.position,
+            source: VertexSource.typed,
+            input: typed.input,
+            afterId: typed.afterId,
+          )
           .id;
     });
   }
@@ -155,7 +160,11 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
   });
 
   Future<void> _edit(Vertex vertex) async {
-    final typed = await CoordinateEntryPage.open(context, vertex: vertex);
+    final typed = await CoordinateEntryPage.open(
+      context,
+      vertex: vertex,
+      ring: _editor.ring(_ringOf(vertex.id)),
+    );
     if (typed == null) return;
     _change(() {
       _editor.move(

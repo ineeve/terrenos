@@ -25,6 +25,7 @@ void main() {
         language: AppLanguage.pt,
         areaUnit: AreaUnit.squareMetres,
         coordinateFormat: CoordinateFormat.ptTm06,
+        entryFormat: CoordinateFormat.degreesMinutesSeconds,
         onboardingComplete: true,
       );
       await FileSettingsRepository(file).save(settings);

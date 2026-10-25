@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/features/map/map_page.dart';
@@ -12,12 +13,16 @@ class BoundaryPreviewMap extends ConsumerWidget {
   const new({
     required this.parts,
     this.highlightId,
+    this.crossings = const [],
     this.height = 220,
     super.key,
   });
 
   final BoundaryParts parts;
   final String? highlightId;
+
+  /// Edges drawn in red because they cross (VAL-2).
+  final List<Crossing> crossings;
   final double height;
 
   @override
@@ -29,6 +34,11 @@ class BoundaryPreviewMap extends ConsumerWidget {
         for (final ring in part)
           for (final v in ring) LatLng(v.lat, v.lon),
     ];
+    final byId = {
+      for (final part in parts)
+        for (final ring in part)
+          for (final v in ring) v.id: v,
+    };
 
     // The preview is not interactive; editing happens in the vertex table.
     const interaction = InteractionOptions(flags: InteractiveFlag.none);
@@ -90,6 +100,22 @@ class BoundaryPreviewMap extends ConsumerWidget {
                       ),
                     ],
                   ),
+            if (crossings.isNotEmpty)
+              PolylineLayer(
+                polylines: [
+                  for (final c in crossings)
+                    for (final (a, b) in [c.first, c.second])
+                      if ((byId[a], byId[b]) case (final va?, final vb?))
+                        Polyline(
+                          points: [
+                            LatLng(va.lat, va.lon),
+                            LatLng(vb.lat, vb.lon),
+                          ],
+                          color: Colors.redAccent,
+                          strokeWidth: 4,
+                        ),
+                ],
+              ),
             MarkerLayer(
               markers: [
                 for (final part in parts)
