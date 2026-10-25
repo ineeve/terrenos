@@ -23,6 +23,7 @@ Future<List<Override>> bootstrap() async {
     deviceRepositoryProvider.overrideWithValue(
       FileDeviceRepository(dirs.deviceFile),
     ),
+    propertyStorageProvider.overrideWithValue(propertyFileStore(dirs)),
   ];
 }
 

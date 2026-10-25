@@ -48,7 +48,36 @@ class LoadReport<T> {
       needsNewerApp.isNotEmpty;
 }
 
-class DocumentStore<T> {
+/// Where documents are kept. [DocumentStore] writes files; tests use
+/// [MemoryDocumentStorage].
+abstract interface class DocumentStorage<T> {
+  Future<LoadReport<T>> loadAll();
+  Future<void> save(T document);
+  Future<void> delete(String id);
+}
+
+class MemoryDocumentStorage<T> implements DocumentStorage<T> {
+  new(this.idOf, [Map<String, T>? documents]) : documents = documents ?? {};
+
+  final String Function(T document) idOf;
+  final Map<String, T> documents;
+
+  @override
+  Future<LoadReport<T>> loadAll() async => LoadReport(
+    documents: Map.of(documents),
+    quarantined: const [],
+    recovered: const [],
+    needsNewerApp: const [],
+  );
+
+  @override
+  Future<void> save(T document) async => documents[idOf(document)] = document;
+
+  @override
+  Future<void> delete(String id) async => documents.remove(id);
+}
+
+class DocumentStore<T> implements DocumentStorage<T> {
   new({required this.directory, required this.quarantine, required this.codec});
 
   final Directory directory;
@@ -57,6 +86,7 @@ class DocumentStore<T> {
 
   /// Reads every document in a background isolate, so start-up stays smooth
   /// with many properties (§8.2).
+  @override
   Future<LoadReport<T>> loadAll() {
     final dir = directory.path;
     final quarantineDir = quarantine.path;
@@ -64,9 +94,11 @@ class DocumentStore<T> {
     return Isolate.run(() => _loadAll(dir, quarantineDir, decode));
   }
 
+  @override
   Future<void> save(T document) =>
       _file(codec.idOf(document)).write(canonicalJson(codec.encode(document)));
 
+  @override
   Future<void> delete(String id) => _file(id).delete();
 
   AtomicFile _file(String id) {
