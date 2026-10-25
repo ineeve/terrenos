@@ -1,30 +1,25 @@
 {
   "@@locale": "pt",
   "appTitle": "Terrenos",
-
   "navMap": "Mapa",
   "navProperties": "Terrenos",
   "navGroups": "Grupos",
   "navSettings": "Definições",
-
   "actionContinue": "Continuar",
   "actionNext": "Seguinte",
   "actionGetStarted": "Começar",
   "actionSave": "Guardar",
   "actionCancel": "Cancelar",
-
   "languageTitle": "Escolha o idioma",
   "languagePortuguese": "Português",
   "languageEnglish": "English",
   "languageSystem": "Igual ao telemóvel",
-
   "deviceNameTitle": "Dê um nome a este telemóvel",
   "deviceNameExplanation": "Quando partilhar terrenos, as outras pessoas veem este nome. Por exemplo: «Telemóvel da Maria».",
   "deviceNameLabel": "Nome do telemóvel",
   "deviceNameHint": "Telemóvel da Maria",
   "deviceNameRequired": "Escreva um nome.",
   "deviceNameTooLong": "Use no máximo {max} carateres.",
-
   "introRecordTitle": "Registe os seus terrenos",
   "introRecordBody": "Desenhe os limites no mapa, percorra-os com o GPS ou escreva as coordenadas de cada vértice.",
   "introOfflineTitle": "Funciona sem internet",
@@ -32,9 +27,7 @@
   "introDataTitle": "Os dados ficam neste telemóvel",
   "introDataBody": "Se perder este telemóvel, perde os terrenos que não partilhou com um grupo nem guardou numa cópia de segurança. Esta aplicação não é um registo predial oficial.",
   "introPage": "Página {current} de {total}",
-
   "inDevelopment": "Esta parte da aplicação ainda está em desenvolvimento.",
-
   "settingsLanguage": "Idioma",
   "settingsDeviceName": "Nome do telemóvel",
   "settingsAreaUnit": "Unidade de área",
@@ -48,5 +41,9 @@
   "settingsAbout": "Sobre",
   "aboutPrivacy": "Esta aplicação não recolhe dados. Tudo o que registar fica no seu telemóvel, a não ser que o partilhe.",
   "aboutDisclaimer": "A aplicação Terrenos não é um registo predial oficial.",
-  "aboutLicences": "Licenças de código aberto"
+  "aboutLicences": "Licenças de código aberto",
+  "mapImagery": "Imagem do mapa",
+  "imageryLatest": "Ortofotos {year} (mais recentes)",
+  "imageryPrevious": "Ortofotos {year}",
+  "imageryPreviousHint": "Imagem mais antiga. Útil quando as árvores escondem um limite nas fotos mais recentes."
 }

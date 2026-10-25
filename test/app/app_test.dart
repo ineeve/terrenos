@@ -8,6 +8,9 @@ import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/core/device/device_identity.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
 import 'package:terrenos/core/storage/app_directories.dart';
+import 'package:terrenos/features/map/map_page.dart';
+
+import '../helpers/fake_tiles.dart';
 
 class _Harness {
   new({AppSettings settings = const AppSettings()})
@@ -16,6 +19,7 @@ class _Harness {
 
   final MemorySettingsRepository settings;
   final MemoryDeviceRepository device;
+  final tiles = FakeTileProvider();
 
   Future<void> pump(WidgetTester tester, {Locale phone = const Locale('en')}) {
     tester.platformDispatcher.localeTestValue = phone;
@@ -29,6 +33,7 @@ class _Harness {
           ),
           settingsRepositoryProvider.overrideWithValue(settings),
           deviceRepositoryProvider.overrideWithValue(device),
+          imageryTileProviderProvider.overrideWithValue(tiles),
         ],
         child: const TerrenosApp(),
       ),
@@ -128,6 +133,36 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.widgetWithText(AppBar, tab), findsOneWidget);
       }
+    });
+
+    testWidgets('the map shows DGT imagery and can switch series', (
+      tester,
+    ) async {
+      final h = _Harness(settings: _onboarded);
+      await h.pump(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ortofotos © DGT 2025'), findsOneWidget);
+      expect(h.tiles.requestedUrls, isNotEmpty);
+      expect(
+        h.tiles.requestedUrls.every(
+          (url) =>
+              url.contains('/wms/ortos2025?') &&
+              url.contains('layers=Ortos2025-RGB') &&
+              url.contains('crs=EPSG%3A3857') &&
+              url.contains('format=image%2Fjpeg'),
+        ),
+        isTrue,
+      );
+
+      await tester.tap(find.byTooltip('Map imagery'));
+      await tester.pumpAndSettle();
+      expect(find.text('Orthophotos 2025 (latest)'), findsOneWidget);
+      await tester.tap(find.text('Orthophotos 2018'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ortofotos © DGT 2018'), findsOneWidget);
+      expect(h.tiles.requestedUrls.last, contains('layers=Ortos2018-RGB'));
     });
 
     testWidgets('settings change language, units and phone name', (
