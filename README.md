@@ -14,7 +14,22 @@ com sincronização direta entre telemóveis.
 
 ## Status
 
-M0 (foundations) in progress. The Flutter project has been created (`flutter create`, Android only), but no app features are implemented yet.
+Milestone M0 (foundations) is in progress; see [PLAN.md](PLAN.md). The data
+model, file storage, first-run setup (PT/EN) and settings exist. Map and
+property features are not built yet.
+
+## Development
+
+Requires Flutter 3.47.8 (stable) and the Android SDK.
+
+```sh
+flutter pub get
+flutter run --flavor dev      # installs as "Terrenos Dev"
+flutter test
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the checks CI runs, and
+[docs/adr/](docs/adr/) for decisions that refine the spec.
 
 ## Licence
 

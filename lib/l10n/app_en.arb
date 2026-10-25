@@ -1,0 +1,57 @@
+{
+  "@@locale": "en",
+  "appTitle": "Terrenos",
+  "@appTitle": {"description": "App name; not translated."},
+
+  "navMap": "Map",
+  "navProperties": "Properties",
+  "navGroups": "Groups",
+  "navSettings": "Settings",
+
+  "actionContinue": "Continue",
+  "actionNext": "Next",
+  "actionGetStarted": "Get started",
+  "actionSave": "Save",
+  "actionCancel": "Cancel",
+
+  "languageTitle": "Choose your language",
+  "languagePortuguese": "Português",
+  "languageEnglish": "English",
+  "languageSystem": "Same as this phone",
+  "@languagePortuguese": {"description": "Always shown in Portuguese, whatever the app language."},
+  "@languageEnglish": {"description": "Always shown in English, whatever the app language."},
+
+  "deviceNameTitle": "Name this phone",
+  "deviceNameExplanation": "When you share properties, other people see this name. For example: “Maria’s phone”.",
+  "deviceNameLabel": "Phone name",
+  "deviceNameHint": "Maria’s phone",
+  "deviceNameRequired": "Enter a name.",
+  "deviceNameTooLong": "Use at most {max} characters.",
+  "@deviceNameTooLong": {"placeholders": {"max": {"type": "int"}}},
+
+  "introRecordTitle": "Record your properties",
+  "introRecordBody": "Draw the boundaries on the map, walk them with GPS, or type the coordinates of each vertex.",
+  "introOfflineTitle": "Works without internet",
+  "introOfflineBody": "Share properties with your family directly between phones. No account or server is needed.",
+  "introDataTitle": "Your data stays on this phone",
+  "introDataBody": "If you lose this phone, you lose the properties you haven’t shared with a group or saved in a backup. This app is not an official land registry.",
+  "introPage": "Page {current} of {total}",
+  "@introPage": {"placeholders": {"current": {"type": "int"}, "total": {"type": "int"}}},
+
+  "inDevelopment": "This part of the app is still being built.",
+
+  "settingsLanguage": "Language",
+  "settingsDeviceName": "Phone name",
+  "settingsAreaUnit": "Area unit",
+  "areaUnitHectaresAndSquareMetres": "Hectares and m²",
+  "areaUnitSquareMetres": "Square metres (m²)",
+  "areaUnitHectares": "Hectares (ha)",
+  "settingsCoordinateFormat": "Coordinate format",
+  "coordinateFormatDecimal": "Decimal degrees (WGS84)",
+  "coordinateFormatDms": "Degrees, minutes, seconds (WGS84)",
+  "coordinateFormatPtTm06": "PT-TM06 (M, P in metres)",
+  "settingsAbout": "About",
+  "aboutPrivacy": "This app collects no data. Everything you record stays on your phone unless you share it.",
+  "aboutDisclaimer": "Terrenos is not an official land registry.",
+  "aboutLicences": "Open-source licences"
+}

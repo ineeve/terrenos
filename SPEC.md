@@ -422,7 +422,7 @@ dependency, so they can be fully unit-tested.
 | Projections | `proj4dart` | WGS84 ⇄ PT-TM06 (EPSG:3763) |
 | State | `flutter_riverpod` (+ generator) | |
 | Routing | `go_router` | |
-| Models | `freezed` + `json_serializable` | |
+| Models | Hand-written immutable classes for synced documents | Exact JSON shape matters for hashing ([ADR 0001](docs/adr/0001-hand-written-document-models.md)) |
 | Storage | `path_provider`, `dart:io` | JSON files (§8) |
 | Secrets | `flutter_secure_storage` | Group keys in Keystore-backed storage |
 | Crypto | `cryptography` | AES-256-GCM, HKDF, HMAC-SHA256, Argon2id, SHA-256 |
@@ -510,7 +510,8 @@ file. The user can choose to share it through the share sheet from the About scr
 - Being a good citizen of a public service: at most 4 concurrent requests, an identifiable
   `User-Agent` (`Terrenos/<version> (+contact)`), exponential backoff on errors, and a limit of
   50 000 tiles per offline area.
-- Typical size: 1 km² down to z19 ≈ 400 tiles (≈ 290 at z19 plus lower zooms) ≈ 10–15 MB. Most smallholdings fit easily.
+- Typical size: 1 km² down to z19 ≈ 400 tiles (≈ 290 at z19 plus lower zooms) ≈ 5 MB, measured in
+  spike S1 ([ADR 0004](docs/adr/0004-dgt-imagery-via-wms-epsg3857.md)). Most smallholdings fit easily.
 - Fallback: if DGT can't be used, any CC BY or public-domain imagery service, configured in one
   place (`core/map/layers.dart`).
 
@@ -1059,7 +1060,7 @@ terrenos/
 ├── android/                         # incl. Kotlin Nearby platform channel (prod flavour only)
 ├── assets/caop/                     # simplified CAOP GeoJSON + index
 ├── lib/
-│   ├── main_dev.dart | main_prod.dart
+│   ├── main.dart                    # one entry point; flavours in Gradle (ADR 0002)
 │   ├── app.dart
 │   ├── l10n/                        # app_pt.arb, app_en.arb
 │   ├── core/
