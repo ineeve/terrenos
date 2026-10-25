@@ -214,5 +214,82 @@
   "propertyVertices": "Vertices",
   "propertyDeleted": "Property moved to the recycle bin.",
   "propertyNotFound": "This property no longer exists.",
-  "propertyDetails": "Details"
+  "propertyDetails": "Details",
+  "aboutDataSources": "Map data: Ortofotos 2025 and CAOP 2025 © Direção-Geral do Território (DGT), CC BY 4.0. Basemap © OpenStreetMap contributors (ODbL).",
+  "mapSearch": "Search places and properties",
+  "mapSearchNoResults": "Nothing found.",
+  "actionClear": "Clear",
+  "areaKindDistrito": "District",
+  "areaKindConcelho": "Municipality",
+  "areaKindFreguesia": "Parish",
+  "editDetailsTitle": "Edit details",
+  "sectionRegistry": "Official references",
+  "sectionLocation": "Location",
+  "sectionConfrontations": "Neighbouring properties",
+  "sectionOwners": "Owners",
+  "sectionOther": "Other",
+  "fieldMatrixArticle": "Matrix article (artigo matricial)",
+  "fieldMatrixParish": "Matrix parish (freguesia matricial)",
+  "fieldRegistryDescription": "Land registry description no.",
+  "fieldCadastralSection": "Cadastral section",
+  "fieldDistrito": "District",
+  "fieldConcelho": "Municipality",
+  "fieldFreguesia": "Parish",
+  "fieldPlaceName": "Place name (lugar / sítio)",
+  "locationAutoHint": "Filled in from the official boundaries (CAOP). You can change it.",
+  "fieldNorth": "North",
+  "fieldSouth": "South",
+  "fieldEast": "East (Nascente)",
+  "fieldWest": "West (Poente)",
+  "fieldOwnerName": "Owner’s name",
+  "fieldOwnerShare": "Share (%)",
+  "actionAddOwner": "Add owner",
+  "actionRemoveOwner": "Remove owner",
+  "ownerShareInvalid": "Enter a percentage from 0 to 100.",
+  "fieldAcquiredOn": "Acquisition date",
+  "actionPickDate": "Choose date",
+  "actionClearDate": "Clear date",
+  "fieldNotes": "Notes",
+  "textTooLong": "Use at most {max} characters.",
+  "@textTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "noValue": "—",
+  "draftBanner": "You have an unfinished boundary ({count} vertices).",
+  "actionResume": "Resume",
+  "actionDiscard": "Discard",
+  "discardTitle": "Discard this boundary?",
+  "discardBody": "The changes you made to the vertices will be lost.",
+  "actionKeepEditing": "Keep editing",
+  "@draftBanner": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "drawTitle": "Draw on the map",
+  "actionAddHere": "Add here",
+  "actionMoveHere": "Move here",
+  "actionDone": "Done",
+  "drawHint": "Tap the map, or pan it to put the crosshair on a corner and tap “Add here”.",
+  "crosshair": "Crosshair",
+  "myLocation": "Show my location",
+  "locationDenied": "Allow location access to see where you are on the map.",
+  "actionOpenSettings": "Open settings",
+  "locationServiceOff": "Turn on location (GPS) in the phone settings.",
+  "locationAccuracy": "Your location (±{metres} m)",
+  "goToCoordinates": "Go to coordinates",
+  "@locationAccuracy": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "zoomInForImagery": "Zoom in to see the orthophotos"
 }

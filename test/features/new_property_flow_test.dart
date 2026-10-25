@@ -92,11 +92,22 @@ void main() {
       expect(find.widgetWithText(AppBar, 'Olival do Ribeiro'), findsOneWidget);
       expect(find.text('Proc. no. 0012/2023-A'), findsOneWidget);
       expect(find.text('Rustic · Olive grove'), findsOneWidget);
+      // PROP-9: filled in from CAOP.
+      expect(
+        find.text('Santa Clara e Castelo Viegas, Coimbra (Coimbra)'),
+        findsOneWidget,
+      );
 
       final saved = h.properties.documents.values.single;
       expect(saved.name, 'Olival do Ribeiro');
       expect(saved.processNumber, '0012/2023-A');
       expect(saved.field(PropertyField.landUse), 'olive_grove');
+      expect(saved.field(PropertyField.location), {
+        'distrito': 'Coimbra',
+        'concelho': 'Coimbra',
+        'freguesia': 'Santa Clara e Castelo Viegas',
+        'auto': true,
+      });
       final vertices = saved.geometry.current!.vertices.toList();
       expect(vertices, hasLength(4));
       expect(vertices.every((v) => v.source == VertexSource.typed), isTrue);

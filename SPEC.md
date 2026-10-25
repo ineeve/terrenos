@@ -32,6 +32,7 @@ v0.1 assumed a cloud backend. The owner has since decided:
 | D14 | **Only WGS84 and PT-TM06 coordinates.** Older Portuguese systems (Datum 73, Datum Lisboa) are not supported, for input or output. |
 | D15 | **Every property has a required identifier name and an optional process number, which is its official ID** (§3.6.1). |
 | D16 | **All official references are optional:** process number, artigo matricial, freguesia matricial, descrição predial and secção cadastral (PROP-2, PROP-5 to PROP-8). A property can be saved with none of them. |
+| D17 | **OpenStreetMap is the low-detail basemap** below zoom 14, where DGT has no imagery; it is never downloaded for offline use ([ADR 0008](docs/adr/0008-openstreetmap-basemap.md)). |
 
 ---
 
@@ -124,13 +125,13 @@ Priority: **P0** is required for v1, **P1** should ship in v1, **P2** comes late
 
 | ID | Requirement | Pri |
 |---|---|---|
-| MAP-1 | Full-screen map. Default layer: **DGT orthophotos** (§6.1) | P0 |
+| MAP-1 | Full-screen map. Default layer: **DGT orthophotos** (§6.1) from zoom 14; OpenStreetMap as the low-detail basemap below that (D17) | P0 |
 | MAP-2 | **Administrative boundaries overlay** (distrito/concelho/freguesia from CAOP) is bundled with the app and works with no download | P0 |
 | MAP-3 | The map stays usable before any imagery is downloaded: CAOP boundaries, GPS position, a coordinate grid and the user's properties on a neutral background | P0 |
 | MAP-4 | User location (dot + accuracy circle) and a "centre on me" button | P0 |
 | MAP-5 | Properties drawn as polygons. Colour is chosen by the user per property, with a default for each group. The name is shown at an interior point | P0 |
 | MAP-6 | Tapping a property opens a bottom sheet (identifier name, process number, area, freguesia, group) with Details and Edit actions | P0 |
-| MAP-7 | **Download an area for offline use:** the user frames the area, chooses detail level (normal: up to z17, high: up to z19), sees the tile count and estimated size, then downloads. Downloads pause and resume across connection loss and app restarts | P0 |
+| MAP-7 | **Download an area for offline use** (DGT imagery only; OpenStreetMap tiles are never bulk-downloaded, D17): the user frames the area, chooses detail level (normal: up to z17, high: up to z19), sees the tile count and estimated size, then downloads. Downloads pause and resume across connection loss and app restarts | P0 |
 | MAP-8 | Manage offline areas: list, size, refresh, delete | P0 |
 | MAP-9 | Offline search box on the map: the user's properties by name or process number (IDN-6), plus places by freguesia, concelho or distrito name (from CAOP). Accent-insensitive ("sao joao" finds "São João") | P1 |
 | MAP-10 | Go to coordinates (WGS84 or PT-TM06) | P1 |
@@ -147,7 +148,7 @@ of property.
 
 | ID | Requirement | Pri |
 |---|---|---|
-| REG-1 | **Draw mode:** tap to add vertices; drag to move; tap a midpoint handle to insert; long-press a vertex to delete. The coordinates of the selected or dragged vertex are shown live in the chosen format | P0 |
+| REG-1 | **Draw mode:** tap the map, or place a fixed crosshair, to add vertices; select a vertex to move it to the crosshair or delete it. The coordinates under the crosshair are shown live in the chosen format ([ADR 0007](docs/adr/0007-crosshair-drawing.md)) | P0 |
 | REG-2 | **Walk mode, by points:** the user stands at each corner (*marco*) and taps "Add point". The app averages GPS fixes for N seconds and stores the vertex's accuracy (VTX-8) | P0 |
 | REG-3 | **Walk mode, continuous:** records a track (every 2 m or 5 s), then simplifies it (Douglas–Peucker, default 1 m tolerance, adjustable) | P1 |
 | REG-4 | **Import** GeoJSON, KML/KMZ or GPX (P1), or a Shapefile .zip in PT-TM06 or WGS84 read from the `.prj` (P2). When a file has several features, the user chooses which ones to import | P1 |
@@ -156,7 +157,7 @@ of property.
 | REG-7 | Snap to vertices of other properties on the phone (within 10 px), so neighbouring parcels share edges exactly | P1 |
 | REG-8 | Multi-part properties (MultiPolygon) | P1 |
 | REG-9 | Holes (inner rings) | P2 |
-| REG-10 | Magnifier loupe while dragging a vertex | P1 |
+| REG-10 | ~~Magnifier loupe while dragging a vertex~~ Dropped: the crosshair avoids finger occlusion (ADR 0007) | — |
 | REG-11 | **Coordinates mode:** build the boundary by entering vertex coordinates, with no map interaction needed (VTX-3 to VTX-6) | P0 |
 | REG-12 | Crash-safe drafts: every change is written to disk, and an unfinished draft is offered for resume on next launch | P0 |
 | REG-13 | Walk mode keeps recording with the screen off (foreground service with a notification) | P0 |

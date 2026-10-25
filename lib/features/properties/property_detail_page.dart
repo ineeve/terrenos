@@ -8,6 +8,7 @@ import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/property_kinds.dart';
+import 'package:terrenos/core/properties/location.dart';
 import 'package:terrenos/features/properties/property_details_form_page.dart';
 import 'package:terrenos/features/vertices/boundary_preview_map.dart';
 import 'package:terrenos/features/vertices/vertex_table.dart';
@@ -64,6 +65,11 @@ class PropertyDetailPage extends ConsumerWidget {
         title: Text(property.name),
         actions: [
           IconButton(
+            tooltip: l10n.editDetailsTitle,
+            icon: const Icon(Icons.edit),
+            onPressed: () => context.push(Routes.propertyDetails(id)),
+          ),
+          IconButton(
             tooltip: l10n.actionDelete,
             icon: const Icon(Icons.delete_outline),
             onPressed: () => _delete(context, ref),
@@ -81,6 +87,11 @@ class PropertyDetailPage extends ConsumerWidget {
                 l10n.processNumberShort(number),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
+            ),
+          if (readLocation(property) case final location?)
+            Text(
+              '${formatLocation(location)} (${location.distrito})',
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
           if (type != null || landUse != null)
             Text(
@@ -131,6 +142,7 @@ class PropertyDetailPage extends ConsumerWidget {
             vertices: vertices,
             vertexInfo: property.vertexInfo.values,
           ),
+          ..._otherDetails(context, property, l10n),
         ],
       ),
     );
@@ -155,4 +167,67 @@ class _Fact extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// The optional details (§3.6), shown only when set.
+List<Widget> _otherDetails(
+  BuildContext context,
+  PropertyDocument doc,
+  AppLocalizations l10n,
+) {
+  String? text(String key) {
+    final value = doc.field(key);
+    return value is String && value.isNotEmpty ? value : null;
+  }
+
+  final confrontations = doc.field(PropertyField.confrontations);
+  final owners = doc.field(PropertyField.owners);
+  final acquired = switch (doc.field(PropertyField.acquiredOn)) {
+    final String s => DateTime.tryParse(s),
+    _ => null,
+  };
+  final facts = <(String, String)>[
+    if (text(PropertyField.placeName) case final v?) (l10n.fieldPlaceName, v),
+    if (text(PropertyField.matrixArticle) case final v?)
+      (l10n.fieldMatrixArticle, v),
+    if (text(PropertyField.matrixParish) case final v?)
+      (l10n.fieldMatrixParish, v),
+    if (text(PropertyField.registryDescription) case final v?)
+      (l10n.fieldRegistryDescription, v),
+    if (text(PropertyField.cadastralSection) case final v?)
+      (l10n.fieldCadastralSection, v),
+    if (confrontations is Map)
+      for (final (side, label) in [
+        ('n', l10n.fieldNorth),
+        ('s', l10n.fieldSouth),
+        ('e', l10n.fieldEast),
+        ('w', l10n.fieldWest),
+      ])
+        if (confrontations[side] case final String v) (label, v),
+    if (owners is List)
+      for (final owner in owners.whereType<Map<String, Object?>>())
+        (
+          l10n.sectionOwners,
+          owner['share'] is num
+              ? '${owner['name']} (${owner['share']} %)'
+              : '${owner['name']}',
+        ),
+    if (acquired != null)
+      (
+        l10n.fieldAcquiredOn,
+        MaterialLocalizations.of(context).formatCompactDate(acquired),
+      ),
+    if (text(PropertyField.notes) case final v?) (l10n.fieldNotes, v),
+  ];
+  if (facts.isEmpty) return const [];
+  return [
+    const Divider(height: 32),
+    for (final (label, value) in facts)
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        dense: true,
+        title: Text(label),
+        subtitle: Text(value, style: Theme.of(context).textTheme.bodyLarge),
+      ),
+  ];
 }

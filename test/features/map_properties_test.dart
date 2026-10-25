@@ -114,4 +114,57 @@ void main() {
     expect(h.properties.documents['p1']!.isDeleted, isFalse);
     expect(find.text('Olival do Ribeiro'), findsOneWidget);
   });
+
+  testWidgets('official boundaries follow the zoom level (MAP-2)', (
+    tester,
+  ) async {
+    final h = Harness(settings: onboarded);
+    await h.pump(tester);
+    await tester.pumpAndSettle();
+
+    final overlay = find.descendant(
+      of: find.byType(AdminBoundariesLayer),
+      matching: find.byType(PolylineLayer),
+    );
+    // Zoomed out: the distrito outline (4 corners, closed).
+    expect(
+      tester.widget<PolylineLayer>(overlay).polylines.single.points,
+      hasLength(5),
+    );
+  });
+
+  testWidgets('search finds places and properties and moves the map (MAP-9)', (
+    tester,
+  ) async {
+    final h = Harness(settings: onboarded);
+    h.properties.documents['p1'] = _olival();
+    await h.pump(tester);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Search places and properties'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'santa clara');
+    await tester.pumpAndSettle();
+    expect(find.text('Santa Clara e Castelo Viegas'), findsOneWidget);
+    expect(find.text('Parish · Coimbra'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '0012 2023');
+    await tester.pumpAndSettle();
+    expect(find.text('Olival do Ribeiro'), findsOneWidget);
+    await tester.tap(find.text('Olival do Ribeiro'));
+    await tester.pumpAndSettle();
+
+    // The map zoomed in on the parcel.
+    final controller = tester
+        .widget<FlutterMap>(find.byType(FlutterMap).first)
+        .mapController!;
+    expect(controller.camera.zoom, greaterThan(15));
+    expect(controller.camera.center.latitude, closeTo(40.2005, 0.001));
+
+    await tester.tap(find.byTooltip('Search places and properties'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'zzzz');
+    await tester.pumpAndSettle();
+    expect(find.text('Nothing found.'), findsOneWidget);
+  });
 }

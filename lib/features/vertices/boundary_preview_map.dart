@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
-import 'package:terrenos/features/map/map_page.dart';
+import 'package:terrenos/features/map/imagery_layer.dart';
 
 /// A non-interactive map of a boundary over the imagery, framed to fit.
 /// Planned vertices are hollow, surveyed ones filled (VTX-11).
@@ -23,7 +22,6 @@ class BoundaryPreviewMap extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colours = Theme.of(context).colorScheme;
-    final source = ref.watch(imagerySourceProvider);
     final points = [
       for (final part in parts)
         for (final ring in part)
@@ -37,8 +35,10 @@ class BoundaryPreviewMap extends ConsumerWidget {
             initialCenter: LatLng(39.6, -8),
             initialZoom: 6,
             interactionOptions: interaction,
+            backgroundColor: mapBackground,
           )
         : MapOptions(
+            backgroundColor: mapBackground,
             initialCameraFit: points.length == 1
                 ? CameraFit.coordinates(
                     coordinates: points,
@@ -62,17 +62,8 @@ class BoundaryPreviewMap extends ConsumerWidget {
           key: ValueKey(Object.hashAll(points)),
           options: options,
           children: [
-            TileLayer(
-              wmsOptions: WMSTileLayerOptions(
-                baseUrl: source.baseUrl,
-                layers: [source.layer],
-                format: 'image/jpeg',
-                version: '1.3.0',
-                transparent: false,
-              ),
-              tileProvider: ref.watch(imageryTileProviderProvider),
-              userAgentPackageName: 'pt.terrenos.app',
-            ),
+            const BasemapTileLayer(),
+            const ImageryTileLayer(),
             for (final part in parts)
               for (final ring in part)
                 if (ring.length >= 3)
@@ -112,9 +103,7 @@ class BoundaryPreviewMap extends ConsumerWidget {
                       ),
               ],
             ),
-            SimpleAttributionWidget(
-              source: Text('$dgtAttribution ${source.year}'),
-            ),
+            const MapAttribution(),
           ],
         ),
       ),

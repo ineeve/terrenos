@@ -34,6 +34,18 @@
 - Attribution: "Ortofotos © DGT" on the map, in About and in PDF exports. The
   terms are recorded in `docs/data-licences.md`.
 
+## Update (M1, tested on a Pixel 7a)
+
+The RGB layers have `MaxScaleDenominator` 50 000: zoomed further out, DGT
+returns blank 667-byte images (the group layer `Ortos2025` only draws the
+sheet grid). The spike tested zooms 17 and 19 only and missed this. Because
+the server measures scale in EPSG:3857 units, imagery starts at **zoom 14**.
+
+So below zoom 14 the app requests no tiles and shows a neutral background
+with the CAOP boundaries, the user's properties and a "zoom in to see the
+orthophotos" hint (MAP-3). A low-zoom basemap from another source would
+need a new data-source decision.
+
 ## Consequences
 
 - Offline areas are about **5 MB per km²** down to z19 (≈ 290 z19 tiles ×

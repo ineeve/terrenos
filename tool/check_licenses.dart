@@ -12,6 +12,9 @@ import 'dart:io';
 /// the reason. Changing this list needs review (PLAN.md §7).
 const _allowed = <String, String>{};
 
+/// How many lines at the top of a licence file are checked.
+const _headerLines = 15;
+
 final _copyleft = {
   'AGPL': RegExp('GNU AFFERO GENERAL PUBLIC LICENSE', caseSensitive: false),
   'LGPL': RegExp('GNU LESSER GENERAL PUBLIC LICENSE', caseSensitive: false),
@@ -43,7 +46,11 @@ void main() {
       continue;
     }
     checked++;
-    final text = licenseFiles.map((f) => f.readAsStringSync()).join('\n');
+    // Only the title lines identify a licence: other licences mention GPL
+    // in their body (e.g. MPL-2.0's "Secondary License" definition).
+    final text = licenseFiles
+        .map((f) => f.readAsLinesSync().take(_headerLines).join('\n'))
+        .join('\n');
     // A package may be dual-licensed (e.g. "MIT or GPL"); those still match
     // and need a reviewed entry in _allowed.
     final match = _copyleft.entries.where((e) => e.value.hasMatch(text));
