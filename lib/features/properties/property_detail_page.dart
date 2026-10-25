@@ -8,6 +8,7 @@ import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/property_kinds.dart';
+import 'package:terrenos/core/properties/property_query.dart';
 import 'package:terrenos/features/properties/property_details_form_page.dart';
 import 'package:terrenos/features/vertices/boundary_preview_map.dart';
 import 'package:terrenos/features/vertices/vertex_table.dart';
@@ -56,6 +57,7 @@ class PropertyDetailPage extends ConsumerWidget {
         ? GeometryService.measure(current!.parts)
         : null;
     final number = property.processNumber;
+    final location = locationOf(property);
     final type = PropertyType.fromCode(property.field(PropertyField.type));
     final landUse = LandUse.fromCode(property.field(PropertyField.landUse));
 
@@ -63,6 +65,11 @@ class PropertyDetailPage extends ConsumerWidget {
       appBar: AppBar(
         title: Text(property.name),
         actions: [
+          IconButton(
+            tooltip: l10n.editDetailsTitle,
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => context.push(Routes.propertyDetails(id)),
+          ),
           IconButton(
             tooltip: l10n.actionDelete,
             icon: const Icon(Icons.delete_outline),
@@ -97,6 +104,29 @@ class PropertyDetailPage extends ConsumerWidget {
                 if (current != null)
                   BoundaryPreviewMap(parts: current.parts, height: 240),
                 const SizedBox(height: 12),
+                // PROP-9 and the official references, when set.
+                for (final (label, value) in [
+                  (l10n.fieldFreguesia, location?.freguesia),
+                  (l10n.fieldConcelho, location?.concelho),
+                  (l10n.fieldDistrito, location?.distrito),
+                  (
+                    l10n.fieldMatrixArticle,
+                    property.field(PropertyField.matrixArticle),
+                  ),
+                  (
+                    l10n.fieldMatrixParish,
+                    property.field(PropertyField.matrixParish),
+                  ),
+                  (
+                    l10n.fieldRegistryDescription,
+                    property.field(PropertyField.registryDescription),
+                  ),
+                  (
+                    l10n.fieldCadastralSection,
+                    property.field(PropertyField.cadastralSection),
+                  ),
+                ])
+                  if (value is String) _Fact(label: label, value: value),
                 if (measurements != null) ...[
                   _Fact(
                     label: l10n.propertyArea,

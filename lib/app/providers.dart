@@ -110,6 +110,18 @@ final propertiesProvider = StreamProvider<List<PropertyDocument>>((ref) async* {
   }
 });
 
+/// Properties in the recycle bin (MGT-3).
+final deletedPropertiesProvider = StreamProvider<List<PropertyDocument>>((
+  ref,
+) async* {
+  final repository = ref.watch(propertyRepositoryProvider);
+  await ref.watch(propertiesProvider.future);
+  yield repository.deleted;
+  await for (final _ in repository.changes) {
+    yield repository.deleted;
+  }
+});
+
 final ProviderFamily<PropertyDocument?, String> propertyProvider =
     Provider.family<PropertyDocument?, String>(
       (ref, id) => ref

@@ -14,6 +14,7 @@ import 'package:terrenos/features/onboarding/language_page.dart';
 import 'package:terrenos/features/properties/properties_page.dart';
 import 'package:terrenos/features/properties/property_detail_page.dart';
 import 'package:terrenos/features/properties/property_details_form_page.dart';
+import 'package:terrenos/features/properties/recycle_bin_page.dart';
 import 'package:terrenos/features/settings/settings_page.dart';
 import 'package:terrenos/features/shell/home_shell.dart';
 
@@ -32,6 +33,8 @@ abstract final class Routes {
   static const newPropertyDetails = '/new-property/details';
   static String property(String id) => '/property/$id';
   static String propertyBoundary(String id) => '/property/$id/boundary';
+  static String propertyDetails(String id) => '/property/$id/details';
+  static const recycleBin = '/recycle-bin';
   static const offlineAreas = '/offline-areas';
   static const offlineAreaNew = '/offline-areas/new';
 }
@@ -94,7 +97,16 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) =>
                 BoundaryEditorPage(propertyId: state.pathParameters['id']),
           ),
+          GoRoute(
+            path: 'details',
+            builder: (context, state) =>
+                PropertyDetailsFormPage(propertyId: state.pathParameters['id']),
+          ),
         ],
+      ),
+      GoRoute(
+        path: Routes.recycleBin,
+        builder: (context, state) => const RecycleBinPage(),
       ),
       GoRoute(
         path: Routes.offlineAreas,

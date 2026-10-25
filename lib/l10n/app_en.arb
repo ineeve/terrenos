@@ -397,5 +397,70 @@
         "type": "String"
       }
     }
+  },
+  "sortTitle": "Sort by",
+  "sortName": "Name",
+  "sortProcessNumber": "Process number",
+  "sortArea": "Area, largest first",
+  "sortFreguesia": "Freguesia",
+  "sortLastChange": "Last change",
+  "filtersTitle": "Filters",
+  "filterClear": "Clear filters",
+  "filterAny": "Any",
+  "filterWith": "With",
+  "filterWithout": "Without",
+  "filterPlanned": "With vertices still to survey",
+  "propertiesSummary": "{count, plural, =1{1 property} other{{count} properties}} · {area}",
+  "recycleBinTitle": "Recycle bin",
+  "recycleBinEmpty": "Nothing here. Deleted properties stay in the recycle bin for 30 days.",
+  "recycleBinDaysLeft": "{days, plural, =1{1 day left to restore} other{{days} days left to restore}}",
+  "actionRestore": "Restore",
+  "propertyRestored": "Property restored.",
+  "editDetailsTitle": "Edit details",
+  "locationTitle": "Location",
+  "locationFromMap": "Filled in from the map (CAOP)",
+  "fieldDistrito": "Distrito",
+  "fieldConcelho": "Concelho",
+  "fieldFreguesia": "Freguesia",
+  "registoTitle": "Registry references (optional)",
+  "fieldMatrixArticle": "Matrix article (artigo matricial)",
+  "fieldMatrixParish": "Matrix parish (freguesia matricial)",
+  "fieldMatrixParishHint": "May differ from today’s freguesia since the 2013 parish merger",
+  "fieldRegistryDescription": "Land registry description no.",
+  "fieldCadastralSection": "Cadastral section",
+  "processNumberDuplicateTitle": "Process number already used",
+  "processNumberDuplicateBody": "“{name}” already has this process number. Two properties rarely share an official ID.",
+  "actionOpenProperty": "Open “{name}”",
+  "actionSaveAnyway": "Save anyway",
+  "@propertiesSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "area": {
+        "type": "String"
+      }
+    }
+  },
+  "@recycleBinDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "@processNumberDuplicateBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@actionOpenProperty": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }
