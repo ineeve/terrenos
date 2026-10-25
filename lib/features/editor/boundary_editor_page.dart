@@ -7,8 +7,10 @@ import 'package:terrenos/core/editing/boundary_editor.dart';
 import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/geometry/validation.dart';
+import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/core/model/vertex.dart';
+import 'package:terrenos/core/properties/location.dart';
 import 'package:terrenos/features/vertices/boundary_preview_map.dart';
 import 'package:terrenos/features/vertices/coordinate_entry_page.dart';
 import 'package:terrenos/features/vertices/vertex_table.dart';
@@ -116,7 +118,18 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
     if (id == null) {
       await context.push(Routes.newPropertyDetails, extra: result.parts);
     } else {
-      await ref.read(propertyRepositoryProvider).saveBoundary(id, result.parts);
+      final repository = ref.read(propertyRepositoryProvider);
+      final doc = await repository.saveBoundary(id, result.parts);
+      // Keep an automatic location in step with the new boundary (PROP-9).
+      if (isAutoLocation(doc)) {
+        final location = autoLocation(
+          await ref.read(caopOrNullProvider.future),
+          result.parts,
+        );
+        if (location != null) {
+          await repository.setFields(id, {PropertyField.location: location});
+        }
+      }
       if (mounted) context.pop();
     }
   }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/app/router.dart';
 import 'package:terrenos/core/format/area_format.dart';
+import 'package:terrenos/core/format/text.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/identifiers.dart';
@@ -33,7 +34,7 @@ class _PropertiesPageState extends ConsumerState<PropertiesPage> {
     if (q.isEmpty) return true;
     final number = doc.processNumber;
     final key = Identifiers.normalizeProcessNumber(q);
-    return foldAccents(doc.name).contains(foldAccents(q)) ||
+    return foldForSearch(doc.name).contains(foldForSearch(q)) ||
         (number != null &&
             key.isNotEmpty &&
             Identifiers.normalizeProcessNumber(number).contains(key));
@@ -166,17 +167,4 @@ Future<void> chooseNewPropertyMethod(BuildContext context) async {
     ),
   );
   if (route != null && context.mounted) await context.push(route);
-}
-
-/// Lowercase without diacritics, so "sao joao" finds "São João".
-String foldAccents(String s) {
-  const from = 'áàâãäçéèêëíìîïñóòôõöúùûü';
-  const to = 'aaaaaceeeeiiiinooooouuuu';
-  final lower = s.toLowerCase();
-  final out = StringBuffer();
-  for (final char in lower.split('')) {
-    final i = from.indexOf(char);
-    out.write(i < 0 ? char : to[i]);
-  }
-  return out.toString();
 }

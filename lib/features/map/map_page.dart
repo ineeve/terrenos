@@ -11,6 +11,7 @@ import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/geometry/validation.dart';
 import 'package:terrenos/core/map/imagery.dart';
+import 'package:terrenos/core/properties/location.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
 /// Tile provider for imagery. Overridden in tests so no network is used.
@@ -234,6 +235,8 @@ class _PropertySummary extends ConsumerWidget {
         children: [
           Text(doc.name, style: Theme.of(context).textTheme.titleLarge),
           if (number != null) Text(l10n.processNumberShort(number)),
+          if (readLocation(doc) case final location?)
+            Text(formatLocation(location)),
           if (area != null)
             Text(formatArea(area, unit, languageCode: language)),
           const SizedBox(height: 16),

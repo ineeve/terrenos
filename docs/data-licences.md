@@ -19,4 +19,13 @@ apply to these datasets.
 
 ## CAOP (administrative boundaries)
 
-To be recorded when the CAOP asset is built (PLAN.md T1.1, spike S3).
+- **Provider:** Direção-Geral do Território (DGT)
+- **Dataset:** Carta Administrativa Oficial de Portugal, CAOP 2025
+  (Continente): distritos, municípios, freguesias.
+- **Licence:** CC BY 4.0, as listed on dados.gov.pt (checked 2026-10-25):
+  <https://dados.gov.pt/datasets/carta-administrativa-oficial-de-portugal-caop2025-continente>.
+  A third-party mirror lists CC BY-NC 4.0; the official portal's listing
+  is what this project relies on.
+- **Bundled form:** `assets/caop/caop.json`, simplified and re-encoded by
+  `tool/caop/build_caop.py`; see `assets/caop/README.md` and ADR 0006.
+- **Attribution shown:** "CAOP 2025 © DGT" in About.

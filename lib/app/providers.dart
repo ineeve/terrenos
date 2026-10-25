@@ -2,8 +2,11 @@
 /// through overrides.
 library;
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderFamily;
+import 'package:terrenos/core/caop/caop.dart';
 import 'package:terrenos/core/crdt/hlc.dart';
 import 'package:terrenos/core/device/device_identity.dart';
 import 'package:terrenos/core/model/documents.dart';
@@ -113,3 +116,20 @@ class DeviceController extends Notifier<DeviceIdentity> {
     await ref.read(deviceRepositoryProvider).save(state);
   }
 }
+
+/// Official administrative boundaries (SPEC.md §6.2), parsed in the
+/// background from the bundled asset. Overridden in tests.
+final caopProvider = FutureProvider<Caop>((ref) async {
+  final json = await rootBundle.loadString('assets/caop/caop.json');
+  return await compute(Caop.parse, json);
+});
+
+/// CAOP for automatic locations: `null` rather than an error if it can't be
+/// loaded, because a missing location is not a failure.
+final caopOrNullProvider = FutureProvider<Caop?>((ref) async {
+  try {
+    return await ref.watch(caopProvider.future);
+  } on Object {
+    return null;
+  }
+});

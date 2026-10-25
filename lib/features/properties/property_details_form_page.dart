@@ -7,6 +7,7 @@ import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/core/model/identifiers.dart';
 import 'package:terrenos/core/model/property_kinds.dart';
+import 'package:terrenos/core/properties/location.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
 /// The details form after the boundary (SPEC.md §4.1): identifier name and
@@ -42,6 +43,10 @@ class _PropertyDetailsFormPageState
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final repository = ref.read(propertyRepositoryProvider);
+    final location = autoLocation(
+      await ref.read(caopOrNullProvider.future),
+      widget.boundary,
+    );
     final doc = await repository.create(
       name: _name.text,
       boundary: widget.boundary,
@@ -51,6 +56,7 @@ class _PropertyDetailsFormPageState
         ),
         PropertyField.type: _type!.name,
         PropertyField.landUse: _landUse!.code,
+        PropertyField.location: ?location,
       },
     );
     if (!mounted) return;

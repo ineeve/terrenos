@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrenos/app/app.dart';
 import 'package:terrenos/app/providers.dart';
+import 'package:terrenos/core/caop/caop.dart';
 import 'package:terrenos/core/device/device_identity.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
@@ -39,6 +41,7 @@ class Harness {
           deviceRepositoryProvider.overrideWithValue(device),
           imageryTileProviderProvider.overrideWithValue(tiles),
           propertyStorageProvider.overrideWithValue(properties),
+          caopProvider.overrideWith((ref) async => testCaop),
         ],
         child: const TerrenosApp(),
       ),
@@ -47,3 +50,33 @@ class Harness {
 }
 
 const onboarded = AppSettings(onboardingComplete: true);
+
+/// One freguesia around the Coimbra test parcels.
+final testCaop = Caop(
+  edition: 'TEST',
+  freguesias: [
+    AdminArea(
+      kind: AreaKind.freguesia,
+      name: 'Santa Clara e Castelo Viegas',
+      concelho: 'Coimbra',
+      distrito: 'Coimbra',
+      bounds: (minLon: -8.5, minLat: 40.1, maxLon: -8.3, maxLat: 40.3),
+      parts: [
+        [
+          Float64List.fromList([
+            -8.5,
+            40.1,
+            -8.3,
+            40.1,
+            -8.3,
+            40.3,
+            -8.5,
+            40.3,
+          ]),
+        ],
+      ],
+    ),
+  ],
+  concelhos: const [],
+  distritos: const [],
+);

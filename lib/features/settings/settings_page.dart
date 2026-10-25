@@ -112,7 +112,10 @@ class SettingsPage extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: Text(l10n.settingsAbout),
-            subtitle: Text('${l10n.aboutPrivacy}\n${l10n.aboutDisclaimer}'),
+            subtitle: Text(
+              '${l10n.aboutPrivacy}\n${l10n.aboutDisclaimer}\n'
+              '${l10n.aboutDataSources}',
+            ),
             isThreeLine: true,
           ),
           ListTile(

@@ -8,6 +8,7 @@ import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/property_kinds.dart';
+import 'package:terrenos/core/properties/location.dart';
 import 'package:terrenos/features/properties/property_details_form_page.dart';
 import 'package:terrenos/features/vertices/boundary_preview_map.dart';
 import 'package:terrenos/features/vertices/vertex_table.dart';
@@ -81,6 +82,11 @@ class PropertyDetailPage extends ConsumerWidget {
                 l10n.processNumberShort(number),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
+            ),
+          if (readLocation(property) case final location?)
+            Text(
+              '${formatLocation(location)} (${location.distrito})',
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
           if (type != null || landUse != null)
             Text(
