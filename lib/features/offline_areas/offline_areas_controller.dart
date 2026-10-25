@@ -89,6 +89,7 @@ class OfflineAreasController extends Notifier<OfflineAreasState> {
   TileDownloader get _downloader => TileDownloader(
     fetch: ref.read(tileFetcherProvider),
     storage: ref.read(tileStorageProvider),
+    sleep: ref.read(tileRetryWaitProvider),
   );
 
   OfflineArea? _area(String id) =>

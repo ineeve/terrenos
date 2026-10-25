@@ -12,6 +12,11 @@ class FakeLocationSource implements LocationSource {
   LocationAccess afterRequest;
   int requests = 0;
   final openedSettings = <LocationAccess>[];
+
+  /// The notice of the latest [fixes] call, if any.
+  RecordingNotice? notice;
+  bool notificationsAllowed = true;
+  int notificationRequests = 0;
   final _fixes = StreamController<LocationFix>.broadcast();
 
   bool get listening => _fixes.hasListener;
@@ -30,7 +35,16 @@ class FakeLocationSource implements LocationSource {
   }
 
   @override
-  Stream<LocationFix> fixes() => _fixes.stream;
+  Stream<LocationFix> fixes({RecordingNotice? notice}) {
+    this.notice = notice;
+    return _fixes.stream;
+  }
+
+  @override
+  Future<bool> requestNotifications() async {
+    notificationRequests++;
+    return notificationsAllowed;
+  }
 
   @override
   Future<void> openSettings(LocationAccess access) async =>

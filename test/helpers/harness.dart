@@ -64,6 +64,7 @@ class Harness {
           tileStorageProvider.overrideWithValue(offlineTiles),
           draftStorageProvider.overrideWithValue(drafts),
           tileFetcherProvider.overrideWithValue((url) => fetch(url)),
+          tileRetryWaitProvider.overrideWithValue((_) async {}),
           browseCacheProvider.overrideWithValue(browseCache),
           locationSourceProvider.overrideWithValue(location),
           adminBoundariesProvider.overrideWithValue(

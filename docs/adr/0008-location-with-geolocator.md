@@ -32,3 +32,23 @@
   phone) still needs a phone. The CAOP overlay adds up to 9 899 lines and
   263 000 points at z12+, culled and simplified by flutter_map; it is part
   of what S6 should measure.
+
+## Update (T2.1, 2026-10-25)
+
+- Walk mode records through `geolocator`'s foreground service with an
+  ongoing notification (REG-13). Since Android 14 that needs the
+  `FOREGROUND_SERVICE_LOCATION` permission; the notification needs
+  `POST_NOTIFICATIONS`, asked for with `permission_handler`.
+- `permission_handler` is pinned to 12.x: 13.x requires `compileSdk` 37,
+  and Flutter 3.47 builds against 36.
+- Google's fused location refuses to start when "Google Location
+  Accuracy" is off, even with GPS on (seen on the emulator). The app then
+  falls back to Android's own GPS provider (`forceLocationManager`), so
+  recording works either way. The same fallback is what the `foss` flavour
+  will rely on.
+- Fixes for one vertex are averaged as in SPEC.md §7.3. The stored accuracy
+  is the median of the fixes used, not reduced by averaging: fixes seconds
+  apart share most of their error.
+- `integration_test/field_recording_test.dart` checks recording, the
+  foreground service and averaging on a device or emulator (see
+  CONTRIBUTING.md); it isn't part of CI.

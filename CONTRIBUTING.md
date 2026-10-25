@@ -26,6 +26,16 @@ dart run tool/check_licenses.dart
 flutter test --coverage && dart run tool/check_coverage.dart
 ```
 
+Tests that need Android itself (GPS, the foreground service,
+permissions) are in `integration_test/` and run on a phone or emulator,
+not in CI. Grant location and notification permissions to
+`pt.terrenos.app.dev`, feed it positions (on an emulator,
+`adb emu geo fix <lon> <lat>`), then:
+
+```sh
+flutter test integration_test --flavor dev
+```
+
 Each pull request should:
 
 - Do one task from PLAN.md, or fix one issue.

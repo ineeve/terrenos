@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 @immutable
 class LocationFix {
@@ -40,6 +41,24 @@ class LocationFix {
   int get hashCode => Object.hash(lat, lon, accuracyMetres, at, mocked);
 }
 
+/// The notification shown while recording in the field (REG-13). While a
+/// stream with a notice is listened to, Android keeps it running with the
+/// screen off as a foreground service.
+@immutable
+class RecordingNotice {
+  const new({
+    required this.title,
+    required this.text,
+    required this.channelName,
+  });
+
+  final String title;
+  final String text;
+
+  /// Shown in Android's notification settings for the app.
+  final String channelName;
+}
+
 enum LocationAccess {
   granted,
 
@@ -61,7 +80,12 @@ abstract interface class LocationSource {
   Future<LocationAccess> requestAccess();
 
   /// Fixes about once a second at the best accuracy, while listened to.
-  Stream<LocationFix> fixes();
+  /// With a [notice], they keep coming with the screen off (REG-13).
+  Stream<LocationFix> fixes({RecordingNotice? notice});
+
+  /// Asks to show notifications (Android 13+), so the recording notice is
+  /// visible. Recording works either way; returns whether it's allowed.
+  Future<bool> requestNotifications();
 
   /// Opens the phone's location settings or this app's settings, whichever
   /// can fix [access].
@@ -98,21 +122,55 @@ class GeolocatorLocationSource implements LocationSource {
         LocationPermission.unableToDetermine => LocationAccess.denied,
       };
 
+  /// Google's fused location first: it also uses Wi-Fi, so the first fix
+  /// comes sooner. It refuses to start when Google's location service is
+  /// off (Android's "Google Location Accuracy"), even with GPS on; then
+  /// Android's own GPS provider is used, which is what surveying needs.
   @override
-  Stream<LocationFix> fixes() =>
-      Geolocator.getPositionStream(
-        locationSettings: defaultTargetPlatform == TargetPlatform.android
-            ? AndroidSettings(intervalDuration: const Duration(seconds: 1))
-            : const LocationSettings(),
-      ).map(
-        (p) => LocationFix(
-          lat: p.latitude,
-          lon: p.longitude,
-          accuracyMetres: p.accuracy,
-          at: p.timestamp,
-          mocked: p.isMocked,
-        ),
-      );
+  Stream<LocationFix> fixes({RecordingNotice? notice}) async* {
+    try {
+      await for (final p in _positions(notice, locationManager: false)) {
+        yield _fix(p);
+      }
+    } on LocationServiceDisabledException {
+      if (!await Geolocator.isLocationServiceEnabled()) rethrow;
+      yield* _positions(notice, locationManager: true).map(_fix);
+    }
+  }
+
+  static Stream<Position> _positions(
+    RecordingNotice? notice, {
+    required bool locationManager,
+  }) => Geolocator.getPositionStream(
+    locationSettings: defaultTargetPlatform == TargetPlatform.android
+        ? AndroidSettings(
+            intervalDuration: const Duration(seconds: 1),
+            forceLocationManager: locationManager,
+            foregroundNotificationConfig: notice == null
+                ? null
+                : ForegroundNotificationConfig(
+                    notificationTitle: notice.title,
+                    notificationText: notice.text,
+                    notificationChannelName: notice.channelName,
+                    // Fixes keep coming with the screen off.
+                    enableWakeLock: true,
+                    setOngoing: true,
+                  ),
+          )
+        : const LocationSettings(),
+  );
+
+  static LocationFix _fix(Position p) => LocationFix(
+    lat: p.latitude,
+    lon: p.longitude,
+    accuracyMetres: p.accuracy,
+    at: p.timestamp,
+    mocked: p.isMocked,
+  );
+
+  @override
+  Future<bool> requestNotifications() async =>
+      (await Permission.notification.request()).isGranted;
 
   @override
   Future<void> openSettings(LocationAccess access) async {

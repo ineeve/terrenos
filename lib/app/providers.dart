@@ -53,6 +53,11 @@ final tileFetcherProvider = Provider<TileFetcher>((ref) {
   return fetcher.call;
 });
 
+/// How a tile download waits before retrying; tests don't wait.
+final tileRetryWaitProvider = Provider<Future<void> Function(Duration)>(
+  (ref) => Future<void>.delayed,
+);
+
 final browseCacheProvider = Provider<BrowseCache>(
   (ref) => FlutterMapBrowseCache(),
 );

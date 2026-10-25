@@ -43,6 +43,7 @@ void main() {
       overrides: [
         tileStorageProvider.overrideWithValue(storage),
         tileFetcherProvider.overrideWithValue((url) => fetch(url)),
+        tileRetryWaitProvider.overrideWithValue((_) async {}),
         browseCacheProvider.overrideWithValue(browsing),
       ],
     );
@@ -193,6 +194,7 @@ void main() {
     final disk = ProviderContainer(
       overrides: [
         tileStorageProvider.overrideWithValue(files),
+        tileRetryWaitProvider.overrideWithValue((_) async {}),
         tileFetcherProvider.overrideWithValue((url) async {
           await gate.future;
           return Uint8List(10);
