@@ -12,6 +12,8 @@ import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/geometry/validation.dart';
 import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/map/offline_tile_provider.dart';
+import 'package:terrenos/features/map/map_overlays.dart';
+import 'package:terrenos/features/map/my_location.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
 /// Tile provider for imagery: downloaded tiles first, then the network.
@@ -54,8 +56,8 @@ class ImagerySourceController extends Notifier<ImagerySource> {
   void select(ImagerySource source) => state = source;
 }
 
-/// The map tab (SPEC.md §3.2). Location is added in a later task (PLAN.md
-/// M2).
+/// The map tab (SPEC.md §3.2): imagery, administrative boundaries, the
+/// user's properties and position.
 class MapPage extends ConsumerWidget {
   const new({super.key});
 
@@ -109,10 +111,24 @@ class MapPage extends ConsumerWidget {
             tileProvider: ref.watch(imageryTileProviderProvider),
             userAgentPackageName: 'pt.terrenos.app',
           ),
+          const AdminBoundariesLayer(),
           const PropertiesLayer(),
+          const MyLocationLayer(),
           const Scalebar(alignment: Alignment.bottomLeft),
           SimpleAttributionWidget(
             source: Text('$dgtAttribution ${source.year}'),
+          ),
+          const Align(
+            alignment: Alignment.topRight,
+            child: Padding(padding: EdgeInsets.all(12), child: CompassButton()),
+          ),
+          const Align(
+            alignment: Alignment.bottomRight,
+            // Above the attribution.
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(12, 12, 12, 44),
+              child: CentreOnMeButton(),
+            ),
           ),
         ],
       ),
@@ -152,6 +168,17 @@ class MapPage extends ConsumerWidget {
                     l10n.imageryPrevious('${ImagerySource.ortos2018.year}'),
                   ),
                   subtitle: Text(l10n.imageryPreviousHint),
+                ),
+                const Divider(),
+                Consumer(
+                  builder: (context, ref, _) => SwitchListTile(
+                    title: Text(l10n.mapAdminBoundaries),
+                    subtitle: Text(l10n.mapAdminBoundariesHint),
+                    value: ref.watch(adminOverlayProvider),
+                    onChanged: (visible) => ref
+                        .read(adminOverlayProvider.notifier)
+                        .show(visible: visible),
+                  ),
                 ),
               ],
             ),

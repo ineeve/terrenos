@@ -316,5 +316,13 @@
         "type": "int"
       }
     }
-  }
+  },
+  "mapCentreOnMe": "Centre on my location",
+  "mapMyLocation": "Your location",
+  "mapNorthUp": "Turn north up",
+  "mapAdminBoundaries": "Administrative boundaries",
+  "mapAdminBoundariesHint": "Distritos, concelhos and freguesias (CAOP)",
+  "locationDenied": "Allow location access to see where you are on the map.",
+  "locationServiceOff": "Location is turned off on this phone.",
+  "actionSettings": "Settings"
 }

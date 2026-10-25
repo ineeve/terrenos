@@ -10,7 +10,16 @@ import 'dart:io';
 
 /// Packages reviewed and accepted despite matching a copyleft pattern, with
 /// the reason. Changing this list needs review (PLAN.md §7).
-const _allowed = <String, String>{};
+const _allowed = <String, String>{
+  'dbus': _mplLinuxOnly,
+  'geoclue': _mplLinuxOnly,
+  'gsettings': _mplLinuxOnly,
+};
+
+const _mplLinuxOnly =
+    'MPL-2.0, allowed by SPEC.md §5.3. Its text names the GPL only as a '
+    'possible secondary licence. Comes with geolocator_linux, which the '
+    'Android app does not include.';
 
 final _copyleft = {
   'AGPL': RegExp('GNU AFFERO GENERAL PUBLIC LICENSE', caseSensitive: false),

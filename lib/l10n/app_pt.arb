@@ -166,5 +166,13 @@
   "aboutMapData": "Dados do mapa",
   "aboutMapDataSources": "Ortofotos © DGT. Limites administrativos: CAOP {year} © DGT, CC BY.",
   "offlineNameTitle": "Dê um nome a esta área",
-  "offlineNameDefault": "Área {number}"
+  "offlineNameDefault": "Área {number}",
+  "mapCentreOnMe": "Centrar na minha localização",
+  "mapMyLocation": "A sua localização",
+  "mapNorthUp": "Orientar para norte",
+  "mapAdminBoundaries": "Limites administrativos",
+  "mapAdminBoundariesHint": "Distritos, concelhos e freguesias (CAOP)",
+  "locationDenied": "Permita o acesso à localização para ver onde está no mapa.",
+  "locationServiceOff": "A localização está desligada neste telemóvel.",
+  "actionSettings": "Definições"
 }

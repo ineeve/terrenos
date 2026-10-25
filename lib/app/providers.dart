@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/misc.dart' show ProviderFamily;
 import 'package:terrenos/core/caop/admin_boundaries.dart';
 import 'package:terrenos/core/crdt/hlc.dart';
 import 'package:terrenos/core/device/device_identity.dart';
+import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/map/browse_cache.dart';
 import 'package:terrenos/core/map/tile_downloader.dart';
 import 'package:terrenos/core/map/tile_store.dart';
@@ -48,6 +49,10 @@ final tileFetcherProvider = Provider<TileFetcher>((ref) {
 
 final browseCacheProvider = Provider<BrowseCache>(
   (ref) => FlutterMapBrowseCache(),
+);
+
+final locationSourceProvider = Provider<LocationSource>(
+  (ref) => GeolocatorLocationSource(),
 );
 
 /// Distritos, concelhos and freguesias from the bundled CAOP asset (§6.2),
