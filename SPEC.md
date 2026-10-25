@@ -510,7 +510,8 @@ file. The user can choose to share it through the share sheet from the About scr
 - Being a good citizen of a public service: at most 4 concurrent requests, an identifiable
   `User-Agent` (`Terrenos/<version> (+contact)`), exponential backoff on errors, and a limit of
   50 000 tiles per offline area.
-- Typical size: 1 km² down to z19 ≈ 400 tiles (≈ 290 at z19 plus lower zooms) ≈ 10–15 MB. Most smallholdings fit easily.
+- Typical size: 1 km² down to z19 ≈ 400 tiles (≈ 290 at z19 plus lower zooms) ≈ 5 MB, measured in
+  spike S1 ([ADR 0004](docs/adr/0004-dgt-imagery-via-wms-epsg3857.md)). Most smallholdings fit easily.
 - Fallback: if DGT can't be used, any CC BY or public-domain imagery service, configured in one
   place (`core/map/layers.dart`).
 
