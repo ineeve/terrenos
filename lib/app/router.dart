@@ -2,12 +2,16 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:terrenos/app/providers.dart';
+import 'package:terrenos/core/model/geometry_history.dart';
+import 'package:terrenos/features/editor/boundary_editor_page.dart';
 import 'package:terrenos/features/groups/groups_page.dart';
 import 'package:terrenos/features/map/map_page.dart';
 import 'package:terrenos/features/onboarding/device_name_page.dart';
 import 'package:terrenos/features/onboarding/intro_page.dart';
 import 'package:terrenos/features/onboarding/language_page.dart';
 import 'package:terrenos/features/properties/properties_page.dart';
+import 'package:terrenos/features/properties/property_detail_page.dart';
+import 'package:terrenos/features/properties/property_details_form_page.dart';
 import 'package:terrenos/features/settings/settings_page.dart';
 import 'package:terrenos/features/shell/home_shell.dart';
 
@@ -19,6 +23,12 @@ abstract final class Routes {
   static const properties = '/properties';
   static const groups = '/groups';
   static const settings = '/settings';
+
+  // Full-screen pages above the bottom navigation.
+  static const newPropertyCoordinates = '/new-property/coordinates';
+  static const newPropertyDetails = '/new-property/details';
+  static String property(String id) => '/property/$id';
+  static String propertyBoundary(String id) => '/property/$id/boundary';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -55,6 +65,27 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.welcomeIntro,
         builder: (context, state) => const IntroPage(),
+      ),
+      GoRoute(
+        path: Routes.newPropertyCoordinates,
+        builder: (context, state) => const BoundaryEditorPage(),
+      ),
+      GoRoute(
+        path: Routes.newPropertyDetails,
+        builder: (context, state) =>
+            PropertyDetailsFormPage(boundary: state.extra! as BoundaryParts),
+      ),
+      GoRoute(
+        path: '/property/:id',
+        builder: (context, state) =>
+            PropertyDetailPage(id: state.pathParameters['id']!),
+        routes: [
+          GoRoute(
+            path: 'boundary',
+            builder: (context, state) =>
+                BoundaryEditorPage(propertyId: state.pathParameters['id']),
+          ),
+        ],
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => HomeShell(shell: shell),

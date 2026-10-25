@@ -44,12 +44,12 @@ void main() {
   group('parseDecimalDegrees', () {
     test('checks the range for each axis', () {
       expect(
-        parseDecimalDegrees('91', Axis.latitude).error,
+        parseDecimalDegrees('91', CoordinateAxis.latitude).error,
         CoordinateError.outOfRange,
       );
-      expect(parseDecimalDegrees('91', Axis.longitude).value, 91);
+      expect(parseDecimalDegrees('91', CoordinateAxis.longitude).value, 91);
       expect(
-        parseDecimalDegrees('-181', Axis.longitude).error,
+        parseDecimalDegrees('-181', CoordinateAxis.longitude).error,
         CoordinateError.outOfRange,
       );
     });
@@ -69,7 +69,10 @@ void main() {
     ];
     for (final input in latitudes) {
       test('latitude "$input"', () {
-        expect(parseDms(input, Axis.latitude).value, closeTo(lat, 1e-9));
+        expect(
+          parseDms(input, CoordinateAxis.latitude).value,
+          closeTo(lat, 1e-9),
+        );
       });
     }
 
@@ -83,49 +86,61 @@ void main() {
     ];
     for (final input in longitudes) {
       test('longitude "$input"', () {
-        expect(parseDms(input, Axis.longitude).value, closeTo(lon, 1e-9));
+        expect(
+          parseDms(input, CoordinateAxis.longitude).value,
+          closeTo(lon, 1e-9),
+        );
       });
     }
 
     test('degrees only and an east longitude', () {
-      expect(parseDms('41°', Axis.latitude).value, 41);
-      expect(parseDms('6 E', Axis.longitude).value, 6);
-      expect(parseDms('6 L', Axis.longitude).value, 6);
-      expect(parseDms('37 S', Axis.latitude).value, -37);
+      expect(parseDms('41°', CoordinateAxis.latitude).value, 41);
+      expect(parseDms('6 E', CoordinateAxis.longitude).value, 6);
+      expect(parseDms('6 L', CoordinateAxis.longitude).value, 6);
+      expect(parseDms('37 S', CoordinateAxis.latitude).value, -37);
     });
 
     test('errors', () {
-      expect(parseDms('', Axis.latitude).error, CoordinateError.empty);
       expect(
-        parseDms('41 60 0 N', Axis.latitude).error,
+        parseDms('', CoordinateAxis.latitude).error,
+        CoordinateError.empty,
+      );
+      expect(
+        parseDms('41 60 0 N', CoordinateAxis.latitude).error,
         CoordinateError.minutesOrSecondsTooLarge,
       );
       expect(
-        parseDms('41 9 60', Axis.latitude).error,
+        parseDms('41 9 60', CoordinateAxis.latitude).error,
         CoordinateError.minutesOrSecondsTooLarge,
       );
       expect(
-        parseDms('8 37 42 N', Axis.longitude).error,
+        parseDms('8 37 42 N', CoordinateAxis.longitude).error,
         CoordinateError.wrongHemisphere,
       );
       expect(
-        parseDms('41 9 30 W', Axis.latitude).error,
+        parseDms('41 9 30 W', CoordinateAxis.latitude).error,
         CoordinateError.wrongHemisphere,
       );
       expect(
-        parseDms('-8 37 42 W', Axis.longitude).error,
+        parseDms('-8 37 42 W', CoordinateAxis.longitude).error,
         CoordinateError.notANumber,
       );
       expect(
-        parseDms('41.5 30', Axis.latitude).error,
+        parseDms('41.5 30', CoordinateAxis.latitude).error,
         CoordinateError.notANumber,
       );
       expect(
-        parseDms('1 2 3 4', Axis.latitude).error,
+        parseDms('1 2 3 4', CoordinateAxis.latitude).error,
         CoordinateError.notANumber,
       );
-      expect(parseDms('41x', Axis.latitude).error, CoordinateError.notANumber);
-      expect(parseDms('95 N', Axis.latitude).error, CoordinateError.outOfRange);
+      expect(
+        parseDms('41x', CoordinateAxis.latitude).error,
+        CoordinateError.notANumber,
+      );
+      expect(
+        parseDms('95 N', CoordinateAxis.latitude).error,
+        CoordinateError.outOfRange,
+      );
     });
   });
 
@@ -136,23 +151,35 @@ void main() {
     });
 
     test('DMS uses O for west in Portuguese and W in English', () {
-      expect(formatDms(41.158350, Axis.latitude, 'en'), '41°09\'30.06"N');
-      expect(formatDms(-8.6285, Axis.longitude, 'en'), '8°37\'42.60"W');
-      expect(formatDms(-8.6285, Axis.longitude, 'pt'), '8°37\'42,60"O');
-      expect(formatDms(-37.1, Axis.latitude, 'pt'), '37°06\'00,00"S');
+      expect(
+        formatDms(41.158350, CoordinateAxis.latitude, 'en'),
+        '41°09\'30.06"N',
+      );
+      expect(
+        formatDms(-8.6285, CoordinateAxis.longitude, 'en'),
+        '8°37\'42.60"W',
+      );
+      expect(
+        formatDms(-8.6285, CoordinateAxis.longitude, 'pt'),
+        '8°37\'42,60"O',
+      );
+      expect(formatDms(-37.1, CoordinateAxis.latitude, 'pt'), '37°06\'00,00"S');
     });
 
     test('DMS rounding carries into minutes and degrees', () {
       expect(
-        formatDms(40 + 59.99999999 / 60, Axis.latitude, 'en'),
+        formatDms(40 + 59.99999999 / 60, CoordinateAxis.latitude, 'en'),
         '41°00\'00.00"N',
       );
     });
 
     test('DMS output parses back to the same value', () {
       for (final v in [41.1583500, 36.9500001, 42.1499999]) {
-        final text = formatDms(v, Axis.latitude, 'pt');
-        expect(parseDms(text, Axis.latitude).value, closeTo(v, 0.005 / 3600));
+        final text = formatDms(v, CoordinateAxis.latitude, 'pt');
+        expect(
+          parseDms(text, CoordinateAxis.latitude).value,
+          closeTo(v, 0.005 / 3600),
+        );
       }
     });
 

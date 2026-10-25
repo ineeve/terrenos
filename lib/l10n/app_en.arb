@@ -85,5 +85,133 @@
       }
     }
   },
-  "imageryPreviousHint": "Older imagery. Useful when trees hide a boundary in the latest photos."
+  "imageryPreviousHint": "Older imagery. Useful when trees hide a boundary in the latest photos.",
+  "actionUndo": "Undo",
+  "actionRedo": "Redo",
+  "actionDelete": "Delete",
+  "actionOk": "OK",
+  "actionContinueAnyway": "Continue anyway",
+  "vertexAddTitle": "Add vertex",
+  "vertexEditTitle": "Edit coordinates",
+  "formatDecimalShort": "Decimal",
+  "formatDmsShort": "DMS",
+  "formatPtTm06Short": "PT-TM06",
+  "fieldLatitude": "Latitude",
+  "fieldLongitude": "Longitude",
+  "fieldM": "M (easting, metres)",
+  "fieldP": "P (northing, metres)",
+  "toggleSign": "Change sign",
+  "coordinateErrorEmpty": "Enter a value.",
+  "coordinateErrorNumber": "Not a valid number.",
+  "coordinateErrorRange": "Out of range.",
+  "coordinateErrorMinutes": "Minutes and seconds must be below 60.",
+  "coordinateErrorHemisphere": "Wrong hemisphere letter for this value.",
+  "coordinateOutsidePortugal": "This point is outside mainland Portugal.",
+  "coordinateSuggestNegative": "Use {value} (west)",
+  "@coordinateSuggestNegative": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "coordinateSuggestSwap": "Swap the two values",
+  "coordinateOnlySystems": "Only WGS84 and PT-TM06 coordinates are accepted. Plans in PT-TM06 say “PT-TM06/ETRS89” in their legend.",
+  "newPropertyTitle": "New property",
+  "editBoundaryTitle": "Edit boundary",
+  "editorNeedThree": "Add at least 3 vertices.",
+  "editorArea": "Area: {area}",
+  "@editorArea": {
+    "placeholders": {
+      "area": {
+        "type": "String"
+      }
+    }
+  },
+  "editorPerimeter": "Perimeter: {perimeter}",
+  "@editorPerimeter": {
+    "placeholders": {
+      "perimeter": {
+        "type": "String"
+      }
+    }
+  },
+  "vertexSurveyedCount": "{surveyed}/{total} vertices surveyed",
+  "@vertexSurveyedCount": {
+    "placeholders": {
+      "surveyed": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "vertexSourceGps": "GPS",
+  "vertexSourceTyped": "Typed",
+  "vertexSourceMap": "Map",
+  "vertexSourceImport": "Imported",
+  "vertexPlanned": "Planned",
+  "vertexSurveyed": "Surveyed",
+  "issueTooFew": "Each boundary needs at least 3 different vertices.",
+  "issueCrossing": "Some edges of the boundary cross each other.",
+  "issueArea": "The area must be between 1 m² and 10 000 ha.",
+  "issueOutside": "Some vertices are outside mainland Portugal.",
+  "issueSwap": "Latitude and longitude may have been swapped.",
+  "issueLowAccuracy": "Some GPS points are imprecise or came from a simulated location.",
+  "issueTooMany": "Too many vertices (maximum 5 000).",
+  "cannotContinueTitle": "Can’t continue",
+  "checkBeforeContinuingTitle": "Check before continuing",
+  "detailsTitle": "Property details",
+  "fieldName": "Identifier name",
+  "nameHint": "e.g. Olival do Ribeiro",
+  "nameRequired": "Enter a name.",
+  "nameTooLong": "Use at most 80 characters.",
+  "nameDuplicate": "There is already a property with this name.",
+  "fieldProcessNumber": "Process number",
+  "processNumberHint": "The property’s official ID (optional)",
+  "processNumberInvalid": "Use only letters, digits, spaces and / - . _",
+  "processNumberTooLong": "Use at most 40 characters.",
+  "processNumberDuplicate": "Another property already has this process number.",
+  "fieldType": "Property type",
+  "typeRustico": "Rustic",
+  "typeUrbano": "Urban",
+  "typeMisto": "Mixed",
+  "fieldLandUse": "Land use",
+  "landUseOliveGrove": "Olive grove",
+  "landUseVineyard": "Vineyard",
+  "landUseOrchard": "Orchard",
+  "landUseArable": "Arable land",
+  "landUsePasture": "Pasture",
+  "landUseEucalyptus": "Forest – eucalyptus",
+  "landUsePine": "Forest – pine",
+  "landUseMontado": "Cork or holm oak (montado)",
+  "landUseScrubland": "Scrubland (mato)",
+  "landUseBuiltUp": "Built-up",
+  "landUseMixed": "Mixed",
+  "landUseOther": "Other",
+  "fieldRequired": "Choose an option.",
+  "actionSaveProperty": "Save property",
+  "propertiesEmpty": "You have no properties yet. Tap + to add your first one.",
+  "propertiesSearch": "Search by name or process number",
+  "propertiesNoResults": "No properties match your search.",
+  "processNumberShort": "Proc. no. {number}",
+  "@processNumberShort": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "newPropertyMethodTitle": "How do you want to add the boundary?",
+  "methodDraw": "Draw on the map",
+  "methodWalk": "Walk it with GPS",
+  "methodCoordinates": "Type coordinates",
+  "methodImport": "Import a file",
+  "comingSoon": "Coming soon",
+  "propertyArea": "Area",
+  "propertyPerimeter": "Perimeter",
+  "propertyVertices": "Vertices",
+  "propertyDeleted": "Property moved to the recycle bin.",
+  "propertyNotFound": "This property no longer exists."
 }

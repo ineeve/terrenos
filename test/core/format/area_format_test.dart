@@ -46,4 +46,9 @@ void main() {
     expect(numberLocaleFor('fr'), 'en');
     expect(numberLocaleFor('pt'), 'pt_PT');
   });
+
+  test('lengths have one decimal and locale grouping', () {
+    expect(formatLength(1234.56, languageCode: 'en'), '1,234.6 m');
+    expect(formatLength(384.56, languageCode: 'pt'), '384,6 m');
+  });
 }

@@ -10,7 +10,7 @@ import 'package:terrenos/core/crs/pt_tm06.dart';
 import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/validation.dart';
 
-enum Axis { latitude, longitude }
+enum CoordinateAxis { latitude, longitude }
 
 /// Why a value could not be read.
 enum CoordinateError {
@@ -97,7 +97,7 @@ bool _validGrouping(String integerPart, String separator) {
 }
 
 /// Reads decimal degrees for one axis and checks the range.
-Parsed parseDecimalDegrees(String input, Axis axis) {
+Parsed parseDecimalDegrees(String input, CoordinateAxis axis) {
   final parsed = parseNumber(input);
   if (!parsed.isValid) return parsed;
   return _inRange(parsed.value!, axis);
@@ -106,7 +106,7 @@ Parsed parseDecimalDegrees(String input, Axis axis) {
 /// Reads degrees, minutes and seconds, e.g. `41°09'30.06"N`,
 /// `8º37’42,60” O`, `N 41 9 30.06` or `-8°37.71'` (decimal minutes).
 /// `O` (Oeste) and `L` (Leste) are accepted as well as `W` and `E`.
-Parsed parseDms(String input, Axis axis) {
+Parsed parseDms(String input, CoordinateAxis axis) {
   var s = input.trim().toUpperCase();
   if (s.isEmpty) return const Parsed.error(CoordinateError.empty);
   for (final minus in _minusSigns) {
@@ -118,7 +118,7 @@ Parsed parseDms(String input, Axis axis) {
   if (hemisphere != null) {
     final letter = hemisphere.group(1) ?? hemisphere.group(2)!;
     final isLat = letter == 'N' || letter == 'S';
-    if (isLat != (axis == Axis.latitude)) {
+    if (isLat != (axis == CoordinateAxis.latitude)) {
       return const Parsed.error(CoordinateError.wrongHemisphere);
     }
     negative = letter == 'S' || letter == 'W' || letter == 'O';
@@ -160,8 +160,8 @@ Parsed parseDms(String input, Axis axis) {
   return _inRange(negative ? -value : value, axis);
 }
 
-Parsed _inRange(double value, Axis axis) {
-  final limit = axis == Axis.latitude ? 90 : 180;
+Parsed _inRange(double value, CoordinateAxis axis) {
+  final limit = axis == CoordinateAxis.latitude ? 90 : 180;
   return value.abs() > limit
       ? const Parsed.error(CoordinateError.outOfRange)
       : Parsed.value(value);
@@ -176,11 +176,11 @@ String formatDecimalDegrees(double value, String languageCode) =>
 
 /// `41°09'30.06"N`; longitudes use `O` (Oeste) in Portuguese, `W` in
 /// English.
-String formatDms(double value, Axis axis, String languageCode) {
+String formatDms(double value, CoordinateAxis axis, String languageCode) {
   final pt = languageCode == 'pt';
   final hemisphere = switch (axis) {
-    Axis.latitude => value < 0 ? 'S' : 'N',
-    Axis.longitude => value < 0 ? (pt ? 'O' : 'W') : 'E',
+    CoordinateAxis.latitude => value < 0 ? 'S' : 'N',
+    CoordinateAxis.longitude => value < 0 ? (pt ? 'O' : 'W') : 'E',
   };
   // Work in hundredths of a second so rounding carries correctly.
   var hundredths = (value.abs() * 360000).round();

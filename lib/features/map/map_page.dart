@@ -93,33 +93,36 @@ class MapPage extends ConsumerWidget {
     final choice = await showModalBottomSheet<ImagerySource>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (context) => SafeArea(
-        child: RadioGroup<ImagerySource>(
-          groupValue: current,
-          onChanged: (s) => Navigator.of(context).pop(s),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: Text(
-                  l10n.mapImagery,
-                  style: Theme.of(context).textTheme.titleMedium,
+        child: SingleChildScrollView(
+          child: RadioGroup<ImagerySource>(
+            groupValue: current,
+            onChanged: (s) => Navigator.of(context).pop(s),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: Text(
+                    l10n.mapImagery,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
-              ),
-              RadioListTile(
-                value: ImagerySource.ortos2025,
-                title: Text(
-                  l10n.imageryLatest('${ImagerySource.ortos2025.year}'),
+                RadioListTile(
+                  value: ImagerySource.ortos2025,
+                  title: Text(
+                    l10n.imageryLatest('${ImagerySource.ortos2025.year}'),
+                  ),
                 ),
-              ),
-              RadioListTile(
-                value: ImagerySource.ortos2018,
-                title: Text(
-                  l10n.imageryPrevious('${ImagerySource.ortos2018.year}'),
+                RadioListTile(
+                  value: ImagerySource.ortos2018,
+                  title: Text(
+                    l10n.imageryPrevious('${ImagerySource.ortos2018.year}'),
+                  ),
+                  subtitle: Text(l10n.imageryPreviousHint),
                 ),
-                subtitle: Text(l10n.imageryPreviousHint),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

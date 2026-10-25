@@ -1,54 +1,15 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:terrenos/app/app.dart';
-import 'package:terrenos/app/providers.dart';
-import 'package:terrenos/core/device/device_identity.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
-import 'package:terrenos/core/storage/app_directories.dart';
-import 'package:terrenos/features/map/map_page.dart';
 
-import '../helpers/fake_tiles.dart';
-
-class _Harness {
-  new({AppSettings settings = const AppSettings()})
-    : settings = MemorySettingsRepository(settings),
-      device = MemoryDeviceRepository();
-
-  final MemorySettingsRepository settings;
-  final MemoryDeviceRepository device;
-  final tiles = FakeTileProvider();
-
-  Future<void> pump(WidgetTester tester, {Locale phone = const Locale('en')}) {
-    tester.platformDispatcher.localeTestValue = phone;
-    tester.platformDispatcher.localesTestValue = [phone];
-    addTearDown(tester.platformDispatcher.clearAllTestValues);
-    return tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          appDirectoriesProvider.overrideWithValue(
-            AppDirectories(Directory('/nonexistent')),
-          ),
-          settingsRepositoryProvider.overrideWithValue(settings),
-          deviceRepositoryProvider.overrideWithValue(device),
-          imageryTileProviderProvider.overrideWithValue(tiles),
-        ],
-        child: const TerrenosApp(),
-      ),
-    );
-  }
-}
-
-const _onboarded = AppSettings(onboardingComplete: true);
+import '../helpers/harness.dart';
 
 void main() {
   group('first run', () {
     testWidgets('completes in Portuguese on a Portuguese phone', (
       tester,
     ) async {
-      final h = _Harness();
+      final h = Harness();
       await h.pump(tester, phone: const Locale('pt', 'PT'));
       await tester.pumpAndSettle();
 
@@ -89,7 +50,7 @@ void main() {
     testWidgets('choosing a language switches the app immediately', (
       tester,
     ) async {
-      final h = _Harness();
+      final h = Harness();
       await h.pump(tester);
       await tester.pumpAndSettle();
 
@@ -101,14 +62,14 @@ void main() {
     });
 
     testWidgets('phones in other languages start in English', (tester) async {
-      final h = _Harness();
+      final h = Harness();
       await h.pump(tester, phone: const Locale('fr', 'FR'));
       await tester.pumpAndSettle();
       expect(find.text('Choose your language'), findsOneWidget);
     });
 
     testWidgets('rejects names that are too long', (tester) async {
-      final h = _Harness();
+      final h = Harness();
       await h.pump(tester);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Continue'));
@@ -123,7 +84,7 @@ void main() {
 
   group('after onboarding', () {
     testWidgets('opens on the map and switches tabs', (tester) async {
-      final h = _Harness(settings: _onboarded);
+      final h = Harness(settings: onboarded);
       await h.pump(tester);
       await tester.pumpAndSettle();
 
@@ -138,7 +99,7 @@ void main() {
     testWidgets('the map shows DGT imagery and can switch series', (
       tester,
     ) async {
-      final h = _Harness(settings: _onboarded);
+      final h = Harness(settings: onboarded);
       await h.pump(tester);
       await tester.pumpAndSettle();
 
@@ -168,7 +129,7 @@ void main() {
     testWidgets('settings change language, units and phone name', (
       tester,
     ) async {
-      final h = _Harness(settings: _onboarded);
+      final h = Harness(settings: onboarded);
       h.device.identity = h.device.identity.copyWith(displayName: 'Old');
       await h.pump(tester);
       await tester.pumpAndSettle();
@@ -217,7 +178,7 @@ void main() {
     });
 
     testWidgets('cancelling a dialog changes nothing', (tester) async {
-      final h = _Harness(settings: _onboarded);
+      final h = Harness(settings: onboarded);
       await h.pump(tester);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Settings'));
@@ -232,7 +193,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tapAt(Offset.zero);
       await tester.pumpAndSettle();
-      expect(h.settings.settings, _onboarded);
+      expect(h.settings.settings, onboarded);
     });
   });
 }
