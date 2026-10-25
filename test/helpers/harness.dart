@@ -15,6 +15,7 @@ import 'package:terrenos/core/storage/app_directories.dart';
 import 'package:terrenos/core/storage/document_store.dart';
 import 'package:terrenos/features/map/map_page.dart';
 
+import 'fake_location.dart';
 import 'fake_tiles.dart';
 
 /// Runs the whole app with in-memory storage and fake map tiles.
@@ -28,6 +29,7 @@ class Harness {
   final tiles = FakeTileProvider();
   final properties = MemoryDocumentStorage<PropertyDocument>((d) => d.id);
   final drafts = MemoryDraftStorage();
+  final location = FakeLocationSource();
 
   Future<void> pump(WidgetTester tester, {Locale phone = const Locale('en')}) {
     tester.platformDispatcher.localeTestValue = phone;
@@ -45,6 +47,7 @@ class Harness {
           propertyStorageProvider.overrideWithValue(properties),
           caopProvider.overrideWith((ref) async => testCaop),
           draftStorageProvider.overrideWithValue(drafts),
+          locationSourceProvider.overrideWithValue(location),
         ],
         child: const TerrenosApp(),
       ),

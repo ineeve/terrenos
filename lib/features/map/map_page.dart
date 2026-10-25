@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -13,10 +14,12 @@ import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/format/text.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/geometry/validation.dart';
+import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/identifiers.dart';
 import 'package:terrenos/core/properties/location.dart';
+import 'package:terrenos/features/vertices/coordinate_entry_page.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
 /// Tile provider for imagery. Overridden in tests so no network is used.
@@ -61,11 +64,76 @@ class MapPage extends ConsumerStatefulWidget {
 
 class _MapPageState extends ConsumerState<MapPage> {
   final _controller = MapController();
+  StreamSubscription<Fix>? _fixes;
+  Fix? _fix;
+  var _centreOnNextFix = false;
+
+  /// A point chosen with "Go to coordinates" (MAP-10).
+  LatLng? _pin;
 
   @override
   void dispose() {
+    unawaited(_fixes?.cancel());
     _controller.dispose();
     super.dispose();
+  }
+
+  /// MAP-4: asks for permission when first needed, then follows the GPS.
+  Future<void> _locate() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final source = ref.read(locationSourceProvider);
+    final availability = await source.ensurePermission();
+    if (!mounted) return;
+    switch (availability) {
+      case LocationAvailability.granted:
+        break;
+      case LocationAvailability.serviceDisabled:
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.locationServiceOff)),
+        );
+        return;
+      case LocationAvailability.denied:
+        messenger.showSnackBar(SnackBar(content: Text(l10n.locationDenied)));
+        return;
+      case LocationAvailability.deniedForever:
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(l10n.locationDenied),
+            action: SnackBarAction(
+              label: l10n.actionOpenSettings,
+              onPressed: source.openSettings,
+            ),
+          ),
+        );
+        return;
+    }
+    if (_fix case final fix?) _centreOn(fix);
+    _centreOnNextFix = _fix == null;
+    _fixes ??= source.fixes().listen((fix) {
+      setState(() => _fix = fix);
+      if (_centreOnNextFix) {
+        _centreOnNextFix = false;
+        _centreOn(fix);
+      }
+    });
+  }
+
+  void _centreOn(Fix fix) => _controller.move(
+    LatLng(fix.lat, fix.lon),
+    max(_controller.camera.zoom, 17),
+  );
+
+  Future<void> _goToCoordinates() async {
+    final l10n = AppLocalizations.of(context);
+    final typed = await CoordinateEntryPage.open(
+      context,
+      title: l10n.goToCoordinates,
+    );
+    if (typed == null) return;
+    final point = LatLng(typed.position.lat, typed.position.lon);
+    setState(() => _pin = point);
+    _controller.move(point, max(_controller.camera.zoom, 18));
   }
 
   Future<void> _search() async {
@@ -106,11 +174,23 @@ class _MapPageState extends ConsumerState<MapPage> {
             onPressed: _search,
           ),
           IconButton(
+            tooltip: l10n.goToCoordinates,
+            icon: const Icon(Icons.pin_drop_outlined),
+            onPressed: _goToCoordinates,
+          ),
+          IconButton(
             tooltip: l10n.mapImagery,
             icon: const Icon(Icons.layers_outlined),
             onPressed: () => _chooseImagery(context, ref),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        // Several tabs have a FAB; no hero animation between them.
+        heroTag: null,
+        tooltip: l10n.myLocation,
+        onPressed: _locate,
+        child: const Icon(Icons.my_location),
       ),
       body: FlutterMap(
         mapController: _controller,
@@ -138,6 +218,59 @@ class _MapPageState extends ConsumerState<MapPage> {
           ),
           const AdminBoundariesLayer(),
           const PropertiesLayer(),
+          if (_fix case final fix?) ...[
+            CircleLayer(
+              circles: [
+                CircleMarker(
+                  point: LatLng(fix.lat, fix.lon),
+                  radius: fix.accuracyMetres,
+                  useRadiusInMeter: true,
+                  color: Colors.lightBlueAccent.withValues(alpha: 0.2),
+                  borderColor: Colors.lightBlueAccent,
+                  borderStrokeWidth: 1,
+                ),
+              ],
+            ),
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: LatLng(fix.lat, fix.lon),
+                  width: 22,
+                  height: 22,
+                  child: Semantics(
+                    label: l10n.locationAccuracy(
+                      fix.accuracyMetres.toStringAsFixed(0),
+                    ),
+                    child: const DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.blue,
+                        border: Border.fromBorderSide(
+                          BorderSide(color: Colors.white, width: 3),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (_pin case final pin?)
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: pin,
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.topCenter,
+                  child: const Icon(
+                    Icons.location_on,
+                    color: Colors.redAccent,
+                    size: 40,
+                  ),
+                ),
+              ],
+            ),
           const Scalebar(alignment: Alignment.bottomLeft),
           SimpleAttributionWidget(
             source: Text('$dgtAttribution ${source.year}'),

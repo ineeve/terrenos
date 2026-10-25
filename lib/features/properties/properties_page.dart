@@ -48,6 +48,8 @@ class _PropertiesPageState extends ConsumerState<PropertiesPage> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navProperties)),
       floatingActionButton: FloatingActionButton(
+        // Several tabs have a FAB; no hero animation between them.
+        heroTag: null,
         tooltip: l10n.newPropertyTitle,
         onPressed: () => chooseNewPropertyMethod(context),
         child: const Icon(Icons.add),

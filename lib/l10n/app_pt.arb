@@ -185,5 +185,11 @@
   "actionMoveHere": "Mover para aqui",
   "actionDone": "Concluído",
   "drawHint": "Toque no mapa, ou mova-o para pôr a mira num canto e toque em «Adicionar aqui».",
-  "crosshair": "Mira"
+  "crosshair": "Mira",
+  "myLocation": "Mostrar a minha localização",
+  "locationDenied": "Permita o acesso à localização para ver onde está no mapa.",
+  "actionOpenSettings": "Abrir definições",
+  "locationServiceOff": "Ligue a localização (GPS) nas definições do telemóvel.",
+  "locationAccuracy": "A sua localização (±{metres} m)",
+  "goToCoordinates": "Ir para coordenadas"
 }

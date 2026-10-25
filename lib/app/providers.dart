@@ -10,6 +10,7 @@ import 'package:terrenos/core/caop/caop.dart';
 import 'package:terrenos/core/crdt/hlc.dart';
 import 'package:terrenos/core/device/device_identity.dart';
 import 'package:terrenos/core/editing/drafts.dart';
+import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/properties/property_repository.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
@@ -143,4 +144,9 @@ final draftStorageProvider = Provider<DraftStorage>(
 /// saving or deleting a draft.
 final draftsProvider = FutureProvider<List<BoundaryDraft>>(
   (ref) => ref.watch(draftStorageProvider).loadAll(),
+);
+
+/// The phone's position (MAP-4, §7.3). Overridden in tests.
+final locationSourceProvider = Provider<LocationSource>(
+  (ref) => const GeolocatorLocationSource(),
 );

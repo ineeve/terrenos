@@ -277,5 +277,18 @@
   "actionMoveHere": "Move here",
   "actionDone": "Done",
   "drawHint": "Tap the map, or pan it to put the crosshair on a corner and tap “Add here”.",
-  "crosshair": "Crosshair"
+  "crosshair": "Crosshair",
+  "myLocation": "Show my location",
+  "locationDenied": "Allow location access to see where you are on the map.",
+  "actionOpenSettings": "Open settings",
+  "locationServiceOff": "Turn on location (GPS) in the phone settings.",
+  "locationAccuracy": "Your location (±{metres} m)",
+  "goToCoordinates": "Go to coordinates",
+  "@locationAccuracy": {
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  }
 }

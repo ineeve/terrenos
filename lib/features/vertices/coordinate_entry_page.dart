@@ -16,18 +16,22 @@ typedef TypedCoordinate = ({LonLat position, CoordinateInput input});
 /// selector, two separate fields, a ± button, inline errors and the
 /// sign/swap suggestions. Returns a [TypedCoordinate] when saved.
 class CoordinateEntryPage extends ConsumerStatefulWidget {
-  const new({this.initial, super.key});
+  const new({this.initial, this.title, super.key});
 
   /// The vertex being edited, if any.
   final Vertex? initial;
 
+  /// Overrides the default "Add vertex" / "Edit coordinates" title.
+  final String? title;
+
   static Future<TypedCoordinate?> open(
     BuildContext context, {
     Vertex? vertex,
+    String? title,
   }) => Navigator.of(context).push<TypedCoordinate>(
     MaterialPageRoute(
       fullscreenDialog: true,
-      builder: (_) => CoordinateEntryPage(initial: vertex),
+      builder: (_) => CoordinateEntryPage(initial: vertex, title: title),
     ),
   );
 
@@ -204,7 +208,10 @@ class _CoordinateEntryPageState extends ConsumerState<CoordinateEntryPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.initial == null ? l10n.vertexAddTitle : l10n.vertexEditTitle,
+          widget.title ??
+              (widget.initial == null
+                  ? l10n.vertexAddTitle
+                  : l10n.vertexEditTitle),
         ),
         actions: [TextButton(onPressed: _save, child: Text(l10n.actionSave))],
       ),

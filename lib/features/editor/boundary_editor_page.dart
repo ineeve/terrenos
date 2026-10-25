@@ -306,6 +306,7 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
+          heroTag: null,
           onPressed: _add,
           icon: const Icon(Icons.add_location_alt),
           label: Text(l10n.vertexAddTitle),
