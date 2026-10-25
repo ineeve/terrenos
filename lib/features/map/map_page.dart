@@ -1,7 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:terrenos/app/providers.dart';
+import 'package:terrenos/app/router.dart';
+import 'package:terrenos/core/format/area_format.dart';
+import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/geometry/validation.dart';
 import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
@@ -78,6 +85,7 @@ class MapPage extends ConsumerWidget {
             tileProvider: ref.watch(imageryTileProviderProvider),
             userAgentPackageName: 'pt.terrenos.app',
           ),
+          const PropertiesLayer(),
           const Scalebar(alignment: Alignment.bottomLeft),
           SimpleAttributionWidget(
             source: Text('$dgtAttribution ${source.year}'),
@@ -128,5 +136,133 @@ class MapPage extends ConsumerWidget {
       ),
     );
     if (choice != null) ref.read(imagerySourceProvider.notifier).select(choice);
+  }
+}
+
+/// The user's properties on the map, labelled with their names (MAP-5).
+/// Tapping one opens a summary with Details and Edit (MAP-6).
+class PropertiesLayer extends ConsumerStatefulWidget {
+  const new({super.key});
+
+  @override
+  ConsumerState<PropertiesLayer> createState() => _PropertiesLayerState();
+}
+
+class _PropertiesLayerState extends ConsumerState<PropertiesLayer> {
+  final LayerHitNotifier<String> _hits = ValueNotifier(null);
+
+  @override
+  void dispose() {
+    _hits.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final properties = ref.watch(propertiesProvider).value ?? const [];
+    final colour = Theme.of(context).colorScheme.primary;
+    return GestureDetector(
+      onTap: () {
+        final id = _hits.value?.hitValues.firstOrNull;
+        if (id != null) unawaited(showPropertySummary(context, id));
+      },
+      child: PolygonLayer<String>(
+        hitNotifier: _hits,
+        polygons: [
+          for (final doc in properties)
+            if (doc.geometry.current case final current?)
+              for (final part in current.parts)
+                if (part.isNotEmpty && part.first.length >= 3)
+                  Polygon<String>(
+                    points: [for (final v in part.first) LatLng(v.lat, v.lon)],
+                    holePointsList: [
+                      for (final hole in part.skip(1))
+                        [for (final v in hole) LatLng(v.lat, v.lon)],
+                    ],
+                    color: colour.withValues(alpha: 0.25),
+                    borderColor: Colors.yellowAccent,
+                    borderStrokeWidth: 2.5,
+                    label: doc.name,
+                    labelStyle: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      shadows: [Shadow(blurRadius: 3)],
+                    ),
+                    labelPlacementCalculator:
+                        const PolygonLabelPlacementCalculator.polylabel(),
+                    hitValue: doc.id,
+                  ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Bottom sheet with a property's name, process number and area (MAP-6).
+Future<void> showPropertySummary(BuildContext context, String id) =>
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(child: _PropertySummary(id: id)),
+      ),
+    );
+
+class _PropertySummary extends ConsumerWidget {
+  const new({required this.id});
+
+  final String id;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final doc = ref.watch(propertyProvider(id));
+    if (doc == null) return const SizedBox.shrink();
+    final language = Localizations.localeOf(context).languageCode;
+    final unit = ref.watch(settingsProvider.select((s) => s.areaUnit));
+    final current = doc.geometry.current;
+    final area = current == null || current.vertices.length < 3
+        ? null
+        : GeometryService.measure(current.parts).areaSquareMetres;
+    final number = doc.processNumber;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(doc.name, style: Theme.of(context).textTheme.titleLarge),
+          if (number != null) Text(l10n.processNumberShort(number)),
+          if (area != null)
+            Text(formatArea(area, unit, languageCode: language)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    unawaited(context.push(Routes.propertyBoundary(id)));
+                  },
+                  icon: const Icon(Icons.edit_location_alt),
+                  label: Text(l10n.editBoundaryTitle),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    unawaited(context.push(Routes.property(id)));
+                  },
+                  child: Text(l10n.propertyDetails),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -135,5 +135,6 @@
   "propertyPerimeter": "Perímetro",
   "propertyVertices": "Vértices",
   "propertyDeleted": "Terreno enviado para a reciclagem.",
-  "propertyNotFound": "Este terreno já não existe."
+  "propertyNotFound": "Este terreno já não existe.",
+  "propertyDetails": "Detalhes"
 }

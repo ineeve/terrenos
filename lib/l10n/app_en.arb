@@ -213,5 +213,6 @@
   "propertyPerimeter": "Perimeter",
   "propertyVertices": "Vertices",
   "propertyDeleted": "Property moved to the recycle bin.",
-  "propertyNotFound": "This property no longer exists."
+  "propertyNotFound": "This property no longer exists.",
+  "propertyDetails": "Details"
 }
