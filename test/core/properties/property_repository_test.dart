@@ -70,6 +70,26 @@ void main() {
     expect(after.fields[PropertyField.notes]!.timestamp, before);
   });
 
+  test('equal maps and lists are not rewritten either', () async {
+    final s = _Setup();
+    final doc = await s.repo.create(
+      name: 'A',
+      fields: {
+        PropertyField.confrontations: {'n': 'Caminho'},
+        PropertyField.owners: [
+          {'name': 'Maria', 'share': 100},
+        ],
+      },
+    );
+    final after = await s.repo.setFields(doc.id, {
+      PropertyField.confrontations: {'n': 'Caminho'},
+      PropertyField.owners: [
+        {'name': 'Maria', 'share': 100},
+      ],
+    });
+    expect(after.docHash, doc.docHash);
+  });
+
   test('lists live properties by name; deleted ones go to the bin', () async {
     final s = _Setup();
     final b = await s.repo.create(name: 'vinha');

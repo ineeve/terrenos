@@ -5,6 +5,7 @@ library;
 
 import 'dart:async';
 
+import 'package:terrenos/core/crdt/canonical_json.dart';
 import 'package:terrenos/core/crdt/hlc.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
@@ -80,7 +81,11 @@ class PropertyRepository {
   Future<PropertyDocument> setFields(String id, Map<String, Object?> fields) {
     var doc = _require(id);
     for (final MapEntry(:key, :value) in fields.entries) {
-      if (doc.field(key) != value || !doc.fields.containsKey(key)) {
+      // Compare as JSON: maps and lists are new objects on every save.
+      final unchanged =
+          doc.fields.containsKey(key) &&
+          canonicalJson(doc.field(key)) == canonicalJson(value);
+      if (!unchanged) {
         doc = doc.withField(key, value, clock.now());
       }
     }

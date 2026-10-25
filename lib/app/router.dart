@@ -29,6 +29,7 @@ abstract final class Routes {
   static const newPropertyDetails = '/new-property/details';
   static String property(String id) => '/property/$id';
   static String propertyBoundary(String id) => '/property/$id/boundary';
+  static String propertyDetails(String id) => '/property/$id/details';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -72,14 +73,21 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: Routes.newPropertyDetails,
-        builder: (context, state) =>
-            PropertyDetailsFormPage(boundary: state.extra! as BoundaryParts),
+        builder: (context, state) => PropertyDetailsFormPage.create(
+          boundary: state.extra! as BoundaryParts,
+        ),
       ),
       GoRoute(
         path: '/property/:id',
         builder: (context, state) =>
             PropertyDetailPage(id: state.pathParameters['id']!),
         routes: [
+          GoRoute(
+            path: 'details',
+            builder: (context, state) => PropertyDetailsFormPage.edit(
+              propertyId: state.pathParameters['id']!,
+            ),
+          ),
           GoRoute(
             path: 'boundary',
             builder: (context, state) =>
