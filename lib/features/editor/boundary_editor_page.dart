@@ -14,6 +14,7 @@ import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/core/model/vertex.dart';
 import 'package:terrenos/core/properties/location.dart';
+import 'package:terrenos/features/editor/draw_on_map_page.dart';
 import 'package:terrenos/features/vertices/boundary_preview_map.dart';
 import 'package:terrenos/features/vertices/coordinate_entry_page.dart';
 import 'package:terrenos/features/vertices/vertex_table.dart';
@@ -25,12 +26,20 @@ import 'package:uuid/uuid.dart';
 /// entry. Works without any imagery: the map is only a preview.
 class BoundaryEditorPage extends ConsumerStatefulWidget {
   /// `null` creates a new property; otherwise edits its boundary.
-  const new({this.propertyId, this.draft, super.key});
+  const new({
+    this.propertyId,
+    this.draft,
+    this.startDrawing = false,
+    super.key,
+  });
 
   final String? propertyId;
 
   /// A saved draft to resume (REG-12).
   final BoundaryDraft? draft;
+
+  /// Open straight into drawing on the map (method "Desenhar no mapa").
+  final bool startDrawing;
 
   @override
   ConsumerState<BoundaryEditorPage> createState() => _BoundaryEditorPageState();
@@ -57,6 +66,24 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
           ...version.vertices.map((v) => v.id),
       ],
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.startDrawing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _draw());
+    }
+  }
+
+  Future<void> _draw() async {
+    await openDrawOnMap(
+      context,
+      editor: _editor,
+      onEdit: _update,
+      propertyId: widget.propertyId,
+    );
+    if (mounted) setState(() {});
   }
 
   /// Applies an edit and saves the draft, so a crash loses nothing.
@@ -226,6 +253,11 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
                 : l10n.editBoundaryTitle,
           ),
           actions: [
+            IconButton(
+              tooltip: l10n.drawTitle,
+              icon: const Icon(Icons.draw),
+              onPressed: _draw,
+            ),
             IconButton(
               tooltip: l10n.actionUndo,
               icon: const Icon(Icons.undo),

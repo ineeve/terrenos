@@ -179,5 +179,11 @@
   "actionDiscard": "Descartar",
   "discardTitle": "Descartar este limite?",
   "discardBody": "As alterações que fez aos vértices serão perdidas.",
-  "actionKeepEditing": "Continuar a editar"
+  "actionKeepEditing": "Continuar a editar",
+  "drawTitle": "Desenhar no mapa",
+  "actionAddHere": "Adicionar aqui",
+  "actionMoveHere": "Mover para aqui",
+  "actionDone": "Concluído",
+  "drawHint": "Toque no mapa, ou mova-o para pôr a mira num canto e toque em «Adicionar aqui».",
+  "crosshair": "Mira"
 }

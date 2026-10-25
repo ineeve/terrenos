@@ -147,7 +147,7 @@ of property.
 
 | ID | Requirement | Pri |
 |---|---|---|
-| REG-1 | **Draw mode:** tap to add vertices; drag to move; tap a midpoint handle to insert; long-press a vertex to delete. The coordinates of the selected or dragged vertex are shown live in the chosen format | P0 |
+| REG-1 | **Draw mode:** tap the map, or place a fixed crosshair, to add vertices; select a vertex to move it to the crosshair or delete it. The coordinates under the crosshair are shown live in the chosen format ([ADR 0007](docs/adr/0007-crosshair-drawing.md)) | P0 |
 | REG-2 | **Walk mode, by points:** the user stands at each corner (*marco*) and taps "Add point". The app averages GPS fixes for N seconds and stores the vertex's accuracy (VTX-8) | P0 |
 | REG-3 | **Walk mode, continuous:** records a track (every 2 m or 5 s), then simplifies it (Douglas–Peucker, default 1 m tolerance, adjustable) | P1 |
 | REG-4 | **Import** GeoJSON, KML/KMZ or GPX (P1), or a Shapefile .zip in PT-TM06 or WGS84 read from the `.prj` (P2). When a file has several features, the user chooses which ones to import | P1 |
@@ -156,7 +156,7 @@ of property.
 | REG-7 | Snap to vertices of other properties on the phone (within 10 px), so neighbouring parcels share edges exactly | P1 |
 | REG-8 | Multi-part properties (MultiPolygon) | P1 |
 | REG-9 | Holes (inner rings) | P2 |
-| REG-10 | Magnifier loupe while dragging a vertex | P1 |
+| REG-10 | ~~Magnifier loupe while dragging a vertex~~ Dropped: the crosshair avoids finger occlusion (ADR 0007) | — |
 | REG-11 | **Coordinates mode:** build the boundary by entering vertex coordinates, with no map interaction needed (VTX-3 to VTX-6) | P0 |
 | REG-12 | Crash-safe drafts: every change is written to disk, and an unfinished draft is offered for resume on next launch | P0 |
 | REG-13 | Walk mode keeps recording with the screen off (foreground service with a notification) | P0 |

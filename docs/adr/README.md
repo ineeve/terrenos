@@ -11,3 +11,4 @@ was decided, why, and what it affects. Numbered in order; never renumbered.
 | [0004](0004-dgt-imagery-via-wms-epsg3857.md) | DGT Ortos 2025 via WMS in EPSG:3857 (spike S1) |
 | [0005](0005-pt-tm06-with-proj4dart.md) | PT-TM06 conversions with proj4dart (spike S4) |
 | [0006](0006-caop-asset.md) | Bundled CAOP 2025 asset (spike S3) |
+| [0007](0007-crosshair-drawing.md) | Drawing with a crosshair instead of dragging vertices |

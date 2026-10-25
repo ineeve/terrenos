@@ -271,5 +271,11 @@
         "type": "String"
       }
     }
-  }
+  },
+  "drawTitle": "Draw on the map",
+  "actionAddHere": "Add here",
+  "actionMoveHere": "Move here",
+  "actionDone": "Done",
+  "drawHint": "Tap the map, or pan it to put the crosshair on a corner and tap “Add here”.",
+  "crosshair": "Crosshair"
 }

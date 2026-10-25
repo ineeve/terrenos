@@ -30,6 +30,7 @@ abstract final class Routes {
 
   // Full-screen pages above the bottom navigation.
   static const newPropertyCoordinates = '/new-property/coordinates';
+  static const newPropertyDraw = '/new-property/draw';
   static const newPropertyDetails = '/new-property/details';
   static String property(String id) => '/property/$id';
   static String propertyBoundary(String id) => '/property/$id/boundary';
@@ -75,6 +76,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: Routes.newPropertyCoordinates,
         builder: (context, state) =>
             BoundaryEditorPage(draft: state.extra as BoundaryDraft?),
+      ),
+      GoRoute(
+        path: Routes.newPropertyDraw,
+        builder: (context, state) =>
+            const BoundaryEditorPage(startDrawing: true),
       ),
       GoRoute(
         path: Routes.newPropertyDetails,
