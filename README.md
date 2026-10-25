@@ -14,7 +14,7 @@ com sincronização direta entre telemóveis.
 
 ## Status
 
-Specification and planning. The Flutter project has not been created yet (PLAN.md, M0).
+M0 (foundations) in progress. The Flutter project has been created (`flutter create`, Android only), but no app features are implemented yet.
 
 ## Licence
 
