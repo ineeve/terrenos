@@ -18,6 +18,7 @@ dependencies:
   meta: ^1.19.0
   path: ^1.9.1
   path_provider: ^2.1.6
+  proj4dart: ^3.0.0
   uuid: ^4.6.0
 
 dev_dependencies:
