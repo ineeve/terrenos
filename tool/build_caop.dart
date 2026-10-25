@@ -147,8 +147,7 @@ void main(List<String> args) {
   final json = jsonEncode({
     'format': 1,
     'edition': edition,
-    'source':
-        'CAOP $edition, Continente. Direção-Geral do Território, CC BY.',
+    'source': 'CAOP $edition, Continente. Direção-Geral do Território, CC BY.',
     'toleranceMetres': tolerance,
     'distritos': distritos,
     'concelhos': concelhos,
@@ -161,13 +160,19 @@ void main(List<String> args) {
 
   final boundaries = AdminBoundaries.parse(json);
   stdout
-    ..writeln('CAOP $edition: ${freguesias.length} freguesias, '
-        '${concelhos.length} concelhos, ${distritos.length} distritos')
-    ..writeln('Boundary lines: ${lines.length}, points $rawPoints → '
-        '$keptPoints at ${tolerance.toStringAsFixed(0)} m')
-    ..writeln('Wrote $_assetPath: ${(json.length / 1e6).toStringAsFixed(2)} MB '
-        '(${(gzip.encode(utf8.encode(json)).length / 1e6).toStringAsFixed(2)} '
-        'MB compressed)');
+    ..writeln(
+      'CAOP $edition: ${freguesias.length} freguesias, '
+      '${concelhos.length} concelhos, ${distritos.length} distritos',
+    )
+    ..writeln(
+      'Boundary lines: ${lines.length}, points $rawPoints → '
+      '$keptPoints at ${tolerance.toStringAsFixed(0)} m',
+    )
+    ..writeln(
+      'Wrote $_assetPath: ${(json.length / 1e6).toStringAsFixed(2)} MB '
+      '(${(gzip.encode(utf8.encode(json)).length / 1e6).toStringAsFixed(2)} '
+      'MB compressed)',
+    );
   _check(boundaries, lines, arcsOf);
 }
 
@@ -401,9 +406,11 @@ void _check(
   }
   final microseconds = timer.elapsedMicroseconds / samples;
   stdout
-    ..writeln('Check: $samples random points, $inside inside a freguesia; '
-        '$disagreements differ from the unsimplified lines, all within '
-        '${worst.toStringAsFixed(1)} m of a border')
+    ..writeln(
+      'Check: $samples random points, $inside inside a freguesia; '
+      '$disagreements differ from the unsimplified lines, all within '
+      '${worst.toStringAsFixed(1)} m of a border',
+    )
     ..writeln('Lookup: ${microseconds.toStringAsFixed(1)} µs per point');
   final fixture = {
     'about':
