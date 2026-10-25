@@ -19,12 +19,15 @@ import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/identifiers.dart';
 import 'package:terrenos/core/properties/location.dart';
+import 'package:terrenos/features/map/imagery_layer.dart';
 import 'package:terrenos/features/vertices/coordinate_entry_page.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
 /// Tile provider for imagery. Overridden in tests so no network is used.
 final imageryTileProviderProvider = Provider<TileProvider>(
-  (ref) => NetworkTileProvider(headers: const {'User-Agent': imageryUserAgent}),
+  // The headers map must be modifiable: TileLayer calls putIfAbsent on it
+  // (a const map crashes the map on start-up).
+  (ref) => NetworkTileProvider(headers: {'User-Agent': imageryUserAgent}),
 );
 
 final imagerySourceProvider =
@@ -202,22 +205,13 @@ class _MapPageState extends ConsumerState<MapPage> {
           cameraConstraint: CameraConstraint.containCenter(
             bounds: MapPage.bounds,
           ),
+          backgroundColor: mapBackground,
         ),
         children: [
-          TileLayer(
-            key: ValueKey(source),
-            wmsOptions: WMSTileLayerOptions(
-              baseUrl: source.baseUrl,
-              layers: [source.layer],
-              format: 'image/jpeg',
-              version: '1.3.0',
-              transparent: false,
-            ),
-            tileProvider: ref.watch(imageryTileProviderProvider),
-            userAgentPackageName: 'pt.terrenos.app',
-          ),
+          const ImageryTileLayer(),
           const AdminBoundariesLayer(),
           const PropertiesLayer(),
+          const ZoomInHint(),
           if (_fix case final fix?) ...[
             CircleLayer(
               circles: [
@@ -499,6 +493,10 @@ final ProviderFamily<List<Polyline>, AreaKind> boundaryLinesProvider =
                 ],
                 color: colour,
                 strokeWidth: width,
+                // A dark edge keeps white lines visible on the plain
+                // background as well as on the imagery.
+                borderColor: Colors.black54,
+                borderStrokeWidth: 1,
               ),
       ];
     });

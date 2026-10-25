@@ -12,6 +12,7 @@ import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/vertex.dart';
+import 'package:terrenos/features/map/imagery_layer.dart';
 import 'package:terrenos/features/map/map_page.dart';
 import 'package:terrenos/features/vertices/vertex_format.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
@@ -129,6 +130,7 @@ class _DrawOnMapPageState extends ConsumerState<DrawOnMapPage> {
           ? CameraFit.coordinates(coordinates: points, maxZoom: 18)
           : null,
       cameraConstraint: CameraConstraint.containCenter(bounds: MapPage.bounds),
+      backgroundColor: mapBackground,
       onTap: (_, point) => _add((lon: point.longitude, lat: point.latitude)),
       onPositionChanged: (camera, _) =>
           setState(() => _crosshair = camera.center),
@@ -228,18 +230,7 @@ class _DrawOnMapPageState extends ConsumerState<DrawOnMapPage> {
             mapController: _map,
             options: _options(),
             children: [
-              TileLayer(
-                key: ValueKey(source),
-                wmsOptions: WMSTileLayerOptions(
-                  baseUrl: source.baseUrl,
-                  layers: [source.layer],
-                  format: 'image/jpeg',
-                  version: '1.3.0',
-                  transparent: false,
-                ),
-                tileProvider: ref.watch(imageryTileProviderProvider),
-                userAgentPackageName: 'pt.terrenos.app',
-              ),
+              const ImageryTileLayer(),
               // Neighbouring properties, for orientation and snapping.
               PolygonLayer(
                 polygons: [
@@ -302,6 +293,7 @@ class _DrawOnMapPageState extends ConsumerState<DrawOnMapPage> {
                     ),
                 ],
               ),
+              const ZoomInHint(),
               const Scalebar(alignment: Alignment.bottomLeft),
               SimpleAttributionWidget(
                 source: Text('$dgtAttribution ${source.year}'),

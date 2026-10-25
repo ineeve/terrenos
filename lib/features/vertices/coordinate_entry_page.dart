@@ -28,7 +28,7 @@ class CoordinateEntryPage extends ConsumerStatefulWidget {
     BuildContext context, {
     Vertex? vertex,
     String? title,
-  }) => Navigator.of(context).push<TypedCoordinate>(
+  }) => Navigator.of(context, rootNavigator: true).push<TypedCoordinate>(
     MaterialPageRoute(
       fullscreenDialog: true,
       builder: (_) => CoordinateEntryPage(initial: vertex, title: title),

@@ -35,4 +35,10 @@ enum ImagerySource {
 
   /// The imagery is 25 cm per pixel, ≈ zoom 19 at Portugal's latitude.
   static const maxNativeZoom = 19;
+
+  /// DGT only draws the orthophotos at scales up to 1:50 000 (the layers'
+  /// MaxScaleDenominator); further out the server returns blank images.
+  /// It measures scale in EPSG:3857 units, so zoom 14 (≈ 1:34 000) is the
+  /// first level with imagery (ADR 0004).
+  static const minZoom = 14;
 }

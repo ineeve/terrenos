@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
 
 import '../helpers/harness.dart';
@@ -104,6 +106,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Ortofotos © DGT 2025'), findsOneWidget);
+      // Zoomed out, DGT has no imagery: nothing is requested and a hint
+      // says to zoom in.
+      expect(h.tiles.requestedUrls, isEmpty);
+      expect(find.text('Zoom in to see the orthophotos'), findsOneWidget);
+
+      tester
+          .widget<FlutterMap>(find.byType(FlutterMap))
+          .mapController!
+          .move(const LatLng(40.2, -8.43), 15);
+      await tester.pumpAndSettle();
+      expect(find.text('Zoom in to see the orthophotos'), findsNothing);
       expect(h.tiles.requestedUrls, isNotEmpty);
       expect(
         h.tiles.requestedUrls.every(

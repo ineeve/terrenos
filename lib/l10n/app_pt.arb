@@ -191,5 +191,6 @@
   "actionOpenSettings": "Abrir definições",
   "locationServiceOff": "Ligue a localização (GPS) nas definições do telemóvel.",
   "locationAccuracy": "A sua localização (±{metres} m)",
-  "goToCoordinates": "Ir para coordenadas"
+  "goToCoordinates": "Ir para coordenadas",
+  "zoomInForImagery": "Aproxime o mapa para ver as ortofotos"
 }
