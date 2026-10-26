@@ -17,7 +17,6 @@ import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
-import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/model/vertex.dart';
 import 'package:terrenos/core/places/places.dart';
 import 'package:terrenos/features/map/map_overlays.dart';
@@ -44,16 +43,12 @@ class DrawMap extends ConsumerStatefulWidget {
     this.track,
     super.key,
   });
-    this.track,
 
   /// The track being recorded in continuous walk mode (REG-3).
   final List<LocationFix>? track;
 
   /// The boundary as shown, including any vertex being dragged.
   final BoundaryParts parts;
-  /// The track being recorded in continuous walk mode (REG-3).
-  final List<LocationFix>? track;
-
   final String? selectedId;
 
   /// Edges drawn in red because they cross (VAL-2).
@@ -232,14 +227,6 @@ class _DrawMapState extends ConsumerState<DrawMap> {
                   for (final c in widget.crossings)
                     for (final (a, b) in [c.first, c.second])
                       if ((byId[a], byId[b]) case (final va?, final vb?))
-                  if (widget.track case final track? when track.length >= 2)
-                    Polyline(
-                      points: [for (final f in track) LatLng(f.lat, f.lon)],
-                      color: Colors.cyanAccent,
-                      strokeWidth: 3,
-                      borderColor: Colors.black45,
-                      borderStrokeWidth: 1,
-                    ),
                         Polyline(
                           points: [
                             LatLng(va.lat, va.lon),
