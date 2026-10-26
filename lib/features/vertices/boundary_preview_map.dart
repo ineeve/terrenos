@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
+import 'package:terrenos/features/map/map_overlays.dart';
 import 'package:terrenos/features/map/map_page.dart';
 
 /// A non-interactive map of a boundary over the imagery, framed to fit.
@@ -132,9 +133,7 @@ class BoundaryPreviewMap extends ConsumerWidget {
                       ),
               ],
             ),
-            SimpleAttributionWidget(
-              source: Text('$dgtAttribution ${source.year}'),
-            ),
+            MapAttribution(sources: ['$dgtAttribution ${source.year}']),
           ],
         ),
       ),

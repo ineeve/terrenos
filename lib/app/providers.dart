@@ -12,6 +12,7 @@ import 'package:terrenos/core/caop/admin_boundaries.dart';
 import 'package:terrenos/core/crdt/hlc.dart';
 import 'package:terrenos/core/device/device_identity.dart';
 import 'package:terrenos/core/editing/boundary_draft.dart';
+import 'package:terrenos/core/location/compass.dart';
 import 'package:terrenos/core/location/location_hub.dart';
 import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/map/browse_cache.dart';
@@ -76,6 +77,22 @@ final locationHubProvider = Provider<LocationHub>((ref) {
   ref.onDispose(hub.dispose);
   return hub;
 });
+
+/// The compass, for Go to vertex (VTX-10).
+final compassSourceProvider = Provider<CompassSource>(
+  (ref) => const PhoneCompass(),
+);
+
+/// Buzzes when the user reaches a vertex (VTX-10): three pulses, so it is
+/// felt through a pocket.
+final arrivalSignalProvider = Provider<Future<void> Function()>(
+  (ref) => () async {
+    for (var i = 0; i < 3; i++) {
+      if (i > 0) await Future<void>.delayed(const Duration(milliseconds: 250));
+      await HapticFeedback.vibrate();
+    }
+  },
+);
 
 /// The battery level in %, for the warning before walk mode (§7.3).
 final batteryLevelProvider = Provider<Future<int> Function()>(

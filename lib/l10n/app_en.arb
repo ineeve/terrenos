@@ -584,6 +584,57 @@
   "compassSouthWest": "south-west",
   "compassWest": "west",
   "compassNorthWest": "north-west",
+  "goToAction": "Go to vertex",
+  "goToActionHint": "Distance and direction to the marker",
+  "goToTitle": "Go to {label}",
+  "@goToTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "goToWaiting": "Waiting for a GPS position…",
+  "goToDirection": "to the {direction}",
+  "@goToDirection": {
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      }
+    }
+  },
+  "goToArrow": "{label} is {distance} to the {direction}",
+  "@goToArrow": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "distance": {
+        "type": "String"
+      },
+      "direction": {
+        "type": "String"
+      }
+    }
+  },
+  "goToArrived": "You are at {label}",
+  "@goToArrived": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "goToNoCompass": "No compass: the arrow points relative to north, at the top of the screen.",
+  "goToCalibrate": "The compass is imprecise. Move the phone in a figure of eight to calibrate it.",
+  "surveyNextVertex": "Survey next vertex ({label})",
+  "@surveyNextVertex": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "@walkAfter": {
     "placeholders": {
       "label": {

@@ -20,6 +20,7 @@ import 'package:terrenos/features/editor/draw_map.dart';
 import 'package:terrenos/features/editor/walk_panel.dart';
 import 'package:terrenos/features/vertices/boundary_preview_map.dart';
 import 'package:terrenos/features/vertices/coordinate_entry_page.dart';
+import 'package:terrenos/features/vertices/go_to_vertex_page.dart';
 import 'package:terrenos/features/vertices/survey_vertex_page.dart';
 import 'package:terrenos/features/vertices/vertex_format.dart';
 import 'package:terrenos/features/vertices/vertex_table.dart';
@@ -250,16 +251,52 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
   /// Measures a vertex on site, then keeps or replaces its coordinates
   /// (VTX-9). The previous coordinates stay in the boundary history.
   Future<void> _survey(Vertex vertex) async {
-    final l10n = AppLocalizations.of(context);
-    final ring = _editor.ring(_ringOf(vertex.id));
-    final label = vertexLabel(ring.indexWhere((v) => v.id == vertex.id), null);
+    final label = _labelOf(vertex.id);
     final outcome = await SurveyVertexPage.open(
       context,
       vertex: vertex,
       label: label,
       parts: _editor.parts,
     );
-    if (outcome == null || !mounted) return;
+    if (outcome != null && mounted) _applySurvey(vertex, label, outcome);
+  }
+
+  /// Guides the user to a vertex (VTX-10), and applies the survey if they
+  /// surveyed it from there.
+  Future<void> _goTo(Vertex vertex) async {
+    setState(() => _selectedId = vertex.id);
+    final label = _labelOf(vertex.id);
+    final outcome = await GoToVertexPage.open(
+      context,
+      vertex: vertex,
+      label: label,
+      parts: _editor.parts,
+    );
+    if (outcome != null && mounted) _applySurvey(vertex, label, outcome);
+  }
+
+  /// The planned vertex to survey next: the first one after the selected
+  /// vertex, going round the boundary; `null` when all are surveyed (§4.1).
+  Vertex? get _nextPlanned {
+    final all = [
+      for (final part in _editor.parts)
+        for (final ring in part) ...ring,
+    ];
+    final start = all.indexWhere((v) => v.id == _selectedId) + 1;
+    for (var i = 0; i < all.length; i++) {
+      final v = all[(start + i) % all.length];
+      if (!v.isSurveyed) return v;
+    }
+    return null;
+  }
+
+  String _labelOf(String id) {
+    final ring = _editor.ring(_ringOf(id));
+    return vertexLabel(ring.indexWhere((v) => v.id == id), null);
+  }
+
+  void _applySurvey(Vertex vertex, String label, SurveyOutcome outcome) {
+    final l10n = AppLocalizations.of(context);
     final (:choice, :fix) = outcome;
     final gps = fix.toGpsFix(ref.read(deviceProvider).deviceId);
     _change(() {
@@ -301,6 +338,12 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
+                leading: const Icon(Icons.navigation_outlined),
+                title: Text(l10n.goToAction),
+                subtitle: Text(l10n.goToActionHint),
+                onTap: () => Navigator.of(context).pop('goTo'),
+              ),
+              ListTile(
                 leading: const Icon(Icons.gps_fixed),
                 title: Text(l10n.surveyAction),
                 subtitle: Text(l10n.surveyActionHint),
@@ -323,6 +366,8 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
     );
     if (!mounted) return;
     switch (action) {
+      case 'goTo':
+        await _goTo(vertex);
       case 'survey':
         await _survey(vertex);
       case 'edit':
@@ -553,6 +598,23 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
                   selectedLabel: _selectedLabel,
                   onCapture: _capture,
                   onStop: () => setState(() => _walking = false),
+                )
+              // In the field, for a saved property; not while drawing a
+              // new one at home, where every vertex is planned.
+              else if (widget.propertyId != null && _nextPlanned != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: FilledButton.tonalIcon(
+                      onPressed: () => unawaited(_goTo(_nextPlanned!)),
+                      icon: const Icon(Icons.navigation),
+                      label: Text(
+                        l10n.surveyNextVertex(_labelOf(_nextPlanned!.id)),
+                      ),
+                    ),
+                  ),
                 ),
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -660,12 +722,18 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
                             message: l10n.drawSnapped,
                             child: const Icon(Icons.join_inner),
                           )
-                        else if (_drag == null)
+                        else if (_drag == null) ...[
+                          IconButton.filledTonal(
+                            tooltip: l10n.goToAction,
+                            icon: const Icon(Icons.navigation_outlined),
+                            onPressed: () => unawaited(_goTo(focus!)),
+                          ),
                           IconButton.filledTonal(
                             tooltip: l10n.surveyAction,
                             icon: const Icon(Icons.gps_fixed),
                             onPressed: () => unawaited(_survey(focus!)),
                           ),
+                        ],
                       ],
                     ),
             ),

@@ -45,3 +45,16 @@ String formatLength(double metres, {required String languageCode}) {
   ).format(metres);
   return '$number m';
 }
+
+/// A walking distance: `4,2 m` under 10 m, `42 m` under 1 km, then
+/// `1,2 km` (PT; `.` in English).
+String formatDistance(double metres, {required String languageCode}) {
+  String number(double value, int decimals) =>
+      NumberFormat.decimalPatternDigits(
+        locale: numberLocaleFor(languageCode),
+        decimalDigits: decimals,
+      ).format(value);
+  if (metres < 10) return '${number(metres, 1)} m';
+  if (metres < 1000) return '${number(metres, 0)} m';
+  return '${number(metres / 1000, 1)} km';
+}

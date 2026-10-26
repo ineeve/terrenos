@@ -35,6 +35,7 @@ Future<Harness> _openSurvey(
   Locale phone = const Locale('en'),
   LocationAccess access = LocationAccess.granted,
 }) async {
+  usePhoneScreen(tester);
   final h = Harness(settings: onboarded);
   h.properties.documents['p1'] = _planned();
   h.location
@@ -47,6 +48,7 @@ Future<Harness> _openSurvey(
         .push(Routes.propertyBoundary('p1')),
   );
   await tester.pumpAndSettle();
+  await scrollToVertex(tester, 'V2');
   await tester.tap(find.text('V2'));
   await tester.pumpAndSettle();
   await tester.tap(

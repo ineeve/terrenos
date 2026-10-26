@@ -19,6 +19,7 @@ import 'package:terrenos/core/storage/app_directories.dart';
 import 'package:terrenos/core/storage/document_store.dart';
 import 'package:terrenos/features/map/map_page.dart';
 
+import 'fake_compass.dart';
 import 'fake_location.dart';
 import 'fake_tiles.dart';
 
@@ -35,6 +36,10 @@ class Harness {
   /// Place names for the map and search; none unless a test needs them.
   final Places? places;
   final location = FakeLocationSource();
+  final compass = FakeCompass();
+
+  /// How many times the phone buzzed for reaching a vertex (VTX-10).
+  int arrivalSignals = 0;
 
   /// Battery level in %, for the walk mode warning.
   int battery = 80;
@@ -75,6 +80,8 @@ class Harness {
           browseCacheProvider.overrideWithValue(browseCache),
           locationSourceProvider.overrideWithValue(location),
           batteryLevelProvider.overrideWithValue(() async => battery),
+          compassSourceProvider.overrideWithValue(compass),
+          arrivalSignalProvider.overrideWithValue(() async => arrivalSignals++),
           adminBoundariesProvider.overrideWithValue(
             AsyncData(caop ?? _noBoundaries),
           ),
@@ -89,6 +96,16 @@ class Harness {
 }
 
 const onboarded = AppSettings(onboardingComplete: true);
+
+/// A tall phone screen, 540 × 1170 dp, for flows that need the editor's
+/// list and its bottom bar on screen together. Wider than most phones
+/// because the test font draws every character 14 px wide.
+void usePhoneScreen(WidgetTester tester) {
+  tester.view
+    ..physicalSize = const Size(1080, 2340)
+    ..devicePixelRatio = 2;
+  addTearDown(tester.view.reset);
+}
 
 /// Scrolls the vertex table until [label] (e.g. `V5`) is built: the table
 /// only builds the rows on screen.

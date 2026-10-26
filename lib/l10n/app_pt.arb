@@ -289,5 +289,15 @@
   "compassSouth": "sul",
   "compassSouthWest": "sudoeste",
   "compassWest": "oeste",
-  "compassNorthWest": "noroeste"
+  "compassNorthWest": "noroeste",
+  "goToAction": "Ir até ao vértice",
+  "goToActionHint": "Distância e direção até ao marco",
+  "goToTitle": "Ir até {label}",
+  "goToWaiting": "À espera de uma posição GPS…",
+  "goToDirection": "para {direction}",
+  "goToArrow": "{label} fica a {distance} para {direction}",
+  "goToArrived": "Chegou a {label}",
+  "goToNoCompass": "Sem bússola: a seta indica a direção em relação ao norte, no topo do ecrã.",
+  "goToCalibrate": "A bússola está imprecisa. Mova o telemóvel num movimento em forma de 8 para a calibrar.",
+  "surveyNextVertex": "Levantar próximo vértice ({label})"
 }

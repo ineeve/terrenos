@@ -51,4 +51,11 @@ void main() {
     expect(formatLength(1234.56, languageCode: 'en'), '1,234.6 m');
     expect(formatLength(384.56, languageCode: 'pt'), '384,6 m');
   });
+
+  test('walking distances round more as they grow', () {
+    expect(formatDistance(4.24, languageCode: 'pt'), '4,2 m');
+    expect(formatDistance(42.4, languageCode: 'en'), '42 m');
+    expect(formatDistance(999.4, languageCode: 'en'), '999 m');
+    expect(formatDistance(1234, languageCode: 'pt'), '1,2 km');
+  });
 }

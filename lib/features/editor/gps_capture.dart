@@ -67,12 +67,15 @@ mixin GpsCapture<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     _recording = ref
         .read(locationHubProvider)
         .fixes(notice: _notice(l10n))
-        .listen(
-          (fix) => setState(() => latestFix = fix),
-          onError: (Object _) => setState(() => latestFix = null),
-        );
+        .listen((fix) {
+          setState(() => latestFix = fix);
+          onFix(fix);
+        }, onError: (Object _) => setState(() => latestFix = null));
     return true;
   }
+
+  /// Called with each fix while following the position.
+  void onFix(LocationFix fix) {}
 
   Future<bool> _confirmLowBattery(int level) async {
     final l10n = AppLocalizations.of(context);

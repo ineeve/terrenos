@@ -15,3 +15,4 @@ was decided, why, and what it affects. Numbered in order; never renumbered.
 | [0008](0008-location-with-geolocator.md) | Location with geolocator; asked for only on request |
 | [0009](0009-ring-orientation-on-export.md) | Ring orientation is fixed on export, not in storage |
 | [0010](0010-place-names-from-openstreetmap.md) | Place names and map search from a bundled OpenStreetMap extract |
+| [0011](0011-compass-with-flutter-compass.md) | Compass with flutter_compass; arrival within the GPS accuracy |
