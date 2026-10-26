@@ -12,8 +12,11 @@ import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/geometry/validation.dart';
 import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/map/offline_tile_provider.dart';
+import 'package:terrenos/core/places/places.dart';
 import 'package:terrenos/features/map/map_overlays.dart';
+import 'package:terrenos/features/map/map_search.dart';
 import 'package:terrenos/features/map/my_location.dart';
+import 'package:terrenos/features/map/place_labels.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
 /// Tile provider for imagery: downloaded tiles first, then the network.
@@ -56,8 +59,8 @@ class ImagerySourceController extends Notifier<ImagerySource> {
   void select(ImagerySource source) => state = source;
 }
 
-/// The map tab (SPEC.md §3.2): imagery, administrative boundaries, the
-/// user's properties and position.
+/// The map tab (SPEC.md §3.2): imagery, administrative boundaries, place
+/// names, the user's properties and position, and search.
 class MapPage extends ConsumerWidget {
   const new({super.key});
 
@@ -112,11 +115,21 @@ class MapPage extends ConsumerWidget {
             userAgentPackageName: 'pt.terrenos.app',
           ),
           const AdminBoundariesLayer(),
+          const PlaceLabelsLayer(),
           const PropertiesLayer(),
+          const SearchPinLayer(),
           const MyLocationLayer(),
           const Scalebar(alignment: Alignment.bottomLeft),
-          SimpleAttributionWidget(
-            source: Text('$dgtAttribution ${source.year}'),
+          MapAttribution(
+            sources: ['$dgtAttribution ${source.year}', osmAttribution],
+          ),
+          const Align(
+            alignment: Alignment.topLeft,
+            // Clear of the compass.
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(12, 12, 72, 12),
+              child: MapSearchBar(),
+            ),
           ),
           const Align(
             alignment: Alignment.topRight,
@@ -126,7 +139,7 @@ class MapPage extends ConsumerWidget {
             alignment: Alignment.bottomRight,
             // Above the attribution.
             child: Padding(
-              padding: EdgeInsets.fromLTRB(12, 12, 12, 44),
+              padding: EdgeInsets.fromLTRB(12, 12, 12, 60),
               child: CentreOnMeButton(),
             ),
           ),
@@ -177,6 +190,16 @@ class MapPage extends ConsumerWidget {
                     value: ref.watch(adminOverlayProvider),
                     onChanged: (visible) => ref
                         .read(adminOverlayProvider.notifier)
+                        .show(visible: visible),
+                  ),
+                ),
+                Consumer(
+                  builder: (context, ref, _) => SwitchListTile(
+                    title: Text(l10n.mapPlaceNames),
+                    subtitle: Text(l10n.mapPlaceNamesHint),
+                    value: ref.watch(placeLabelsProvider),
+                    onChanged: (visible) => ref
+                        .read(placeLabelsProvider.notifier)
                         .show(visible: visible),
                   ),
                 ),

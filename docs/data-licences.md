@@ -33,3 +33,17 @@ apply to these datasets.
   changes in `assets/caop/README.md`.
 - **Attribution shown:** "Limites administrativos: CAOP 2025 © DGT" in
   Settings → Map data.
+
+## OpenStreetMap (place names)
+
+- **Provider:** OpenStreetMap contributors
+- **Data used:** nodes tagged `place` = `city`, `town`, `village` or
+  `hamlet` with a `name`, in mainland Portugal, extracted through the
+  Overpass API on 2026-10-26. See ADR 0010.
+- **Licence:** Open Database License (ODbL) 1.0,
+  <https://www.openstreetmap.org/copyright>.
+- **What is committed:** the derivative database `assets/places/places.json`,
+  offered under the ODbL, with its changes described in
+  `assets/places/README.md`. The app's MIT licence does not apply to it.
+- **Attribution shown:** "© OpenStreetMap" on the map; "Place names ©
+  OpenStreetMap contributors, ODbL" in Settings → Map data.

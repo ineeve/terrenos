@@ -16,7 +16,8 @@ void main() {
 
     expect(
       find.text(
-        'Ortofotos © DGT. Limites administrativos: CAOP 2025 © DGT, CC BY.',
+        'Ortofotos © DGT. Limites administrativos: CAOP 2025 © DGT, CC BY. '
+        'Nomes de localidades © contribuidores do OpenStreetMap, ODbL.',
       ),
       findsOneWidget,
     );

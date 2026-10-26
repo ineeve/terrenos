@@ -42,3 +42,4 @@ flutter:
   generate: true
   assets:
     - assets/caop/caop.json
+    - assets/places/places.json

@@ -233,7 +233,9 @@ void main() {
       await tester.tap(find.text('Administrative boundaries'));
       await tester.pumpAndSettle();
       expect(drawn(tester), isEmpty);
-      final toggle = tester.widget<SwitchListTile>(find.byType(SwitchListTile));
+      final toggle = tester.widget<SwitchListTile>(
+        find.widgetWithText(SwitchListTile, 'Administrative boundaries'),
+      );
       expect(toggle.value, isFalse);
     });
 

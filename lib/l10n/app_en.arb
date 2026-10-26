@@ -311,7 +311,7 @@
     }
   },
   "aboutMapData": "Map data",
-  "aboutMapDataSources": "Orthophotos © DGT. Administrative boundaries: CAOP {year} © DGT, CC BY.",
+  "aboutMapDataSources": "Orthophotos © DGT. Administrative boundaries: CAOP {year} © DGT, CC BY. Place names © OpenStreetMap contributors, ODbL.",
   "@aboutMapDataSources": {
     "placeholders": {
       "year": {
@@ -333,6 +333,28 @@
   "mapNorthUp": "Turn north up",
   "mapAdminBoundaries": "Administrative boundaries",
   "mapAdminBoundariesHint": "Distritos, concelhos and freguesias (CAOP)",
+  "mapPlaceNames": "Place names",
+  "mapPlaceNamesHint": "Cities, towns and villages (OpenStreetMap)",
+  "mapSearchHint": "Search places and properties",
+  "mapSearchPrompt": "Type the name of a town, village, freguesia or concelho, or of one of your properties.",
+  "mapSearchNoResults": "Nothing found for “{query}”.",
+  "@mapSearchNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "mapSearchMyProperties": "My properties",
+  "mapSearchPlaces": "Places",
+  "mapSearchPin": "Search result. Tap to remove.",
+  "placeKindDistrito": "Distrito",
+  "placeKindConcelho": "Concelho",
+  "placeKindFreguesia": "Freguesia",
+  "placeKindCity": "City",
+  "placeKindTown": "Town",
+  "placeKindVillage": "Village",
+  "placeKindHamlet": "Hamlet",
   "locationDenied": "Allow location access to see where you are on the map.",
   "locationServiceOff": "Location is turned off on this phone.",
   "actionSettings": "Settings",

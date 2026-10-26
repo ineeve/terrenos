@@ -13,6 +13,7 @@ import 'package:terrenos/core/map/browse_cache.dart';
 import 'package:terrenos/core/map/tile_downloader.dart';
 import 'package:terrenos/core/map/tile_store.dart';
 import 'package:terrenos/core/model/documents.dart';
+import 'package:terrenos/core/places/places.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
 import 'package:terrenos/core/storage/app_directories.dart';
 import 'package:terrenos/core/storage/document_store.dart';
@@ -23,13 +24,16 @@ import 'fake_tiles.dart';
 
 /// Runs the whole app with in-memory storage and fake map tiles.
 class Harness {
-  new({AppSettings settings = const AppSettings(), this.caop})
+  new({AppSettings settings = const AppSettings(), this.caop, this.places})
     : settings = MemorySettingsRepository(settings),
       device = MemoryDeviceRepository();
 
   /// CAOP boundaries for the map; none unless a test needs them, so tests
   /// don't parse the 2.5 MB asset.
   final AdminBoundaries? caop;
+
+  /// Place names for the map and search; none unless a test needs them.
+  final Places? places;
   final location = FakeLocationSource();
 
   /// Battery level in %, for the walk mode warning.
@@ -73,6 +77,9 @@ class Harness {
           batteryLevelProvider.overrideWithValue(() async => battery),
           adminBoundariesProvider.overrideWithValue(
             AsyncData(caop ?? _noBoundaries),
+          ),
+          placesProvider.overrideWithValue(
+            AsyncData(places ?? Places(osmTimestamp: '', places: const [])),
           ),
         ],
         child: const TerrenosApp(),

@@ -14,3 +14,4 @@ was decided, why, and what it affects. Numbered in order; never renumbered.
 | [0007](0007-caop-asset-as-shared-boundary-lines.md) | CAOP asset as shared boundary lines (spike S3) |
 | [0008](0008-location-with-geolocator.md) | Location with geolocator; asked for only on request |
 | [0009](0009-ring-orientation-on-export.md) | Ring orientation is fixed on export, not in storage |
+| [0010](0010-place-names-from-openstreetmap.md) | Place names and map search from a bundled OpenStreetMap extract |

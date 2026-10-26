@@ -18,6 +18,8 @@ import 'package:terrenos/core/map/browse_cache.dart';
 import 'package:terrenos/core/map/tile_downloader.dart';
 import 'package:terrenos/core/map/tile_store.dart';
 import 'package:terrenos/core/model/documents.dart';
+import 'package:terrenos/core/places/place_search.dart';
+import 'package:terrenos/core/places/places.dart';
 import 'package:terrenos/core/properties/property_repository.dart';
 import 'package:terrenos/core/settings/app_settings.dart';
 import 'package:terrenos/core/storage/app_directories.dart';
@@ -86,6 +88,21 @@ final batteryLevelProvider = Provider<Future<int> Function()>(
 final adminBoundariesProvider = FutureProvider<AdminBoundaries>((ref) async {
   final text = await rootBundle.loadString(caopAsset, cache: false);
   return await Isolate.run(() => AdminBoundaries.parse(text));
+});
+
+/// Cities, towns, villages and hamlets from the bundled OpenStreetMap
+/// extract (§6.3), parsed in a background isolate on first use.
+final placesProvider = FutureProvider<Places>((ref) async {
+  final text = await rootBundle.loadString(placesAsset, cache: false);
+  return await Isolate.run(() => Places.parse(text));
+});
+
+/// Map search over CAOP areas and places (MAP-9); `null` while loading.
+final placeSearchProvider = Provider<PlaceSearch?>((ref) {
+  final caop = ref.watch(adminBoundariesProvider).value;
+  final places = ref.watch(placesProvider).value;
+  if (caop == null || places == null) return null;
+  return PlaceSearch(caop, places);
 });
 
 /// File storage for properties; `decode` runs in a background isolate.

@@ -111,3 +111,29 @@ class CompassButton extends StatelessWidget {
     );
   }
 }
+
+/// Data credits in the bottom-right corner, one per line so they fit
+/// beside the scale bar on a narrow phone.
+class MapAttribution extends StatelessWidget {
+  const new({required this.sources, super.key});
+
+  final List<String> sources;
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    child: Align(
+      alignment: Alignment.bottomRight,
+      child: ColoredBox(
+        color: Theme.of(context).colorScheme.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(3),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [for (final source in sources) Text(source)],
+          ),
+        ),
+      ),
+    ),
+  );
+}

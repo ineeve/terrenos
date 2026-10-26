@@ -118,7 +118,7 @@ Priority: **P0** is required for v1, **P1** should ship in v1, **P2** comes late
 | SET-6 | GPS averaging duration (default 5 s) and accuracy warning threshold (default 15 m) | P1 |
 | SET-7 | App lock with the device PIN or biometrics (`local_auth`) | P1 |
 | SET-8 | Storage screen: space used by properties, photos and offline maps, with options to delete | P0 |
-| SET-9 | About: version, licences, data attributions (DGT, CAOP), privacy statement ("this app collects no data") | P0 |
+| SET-9 | About: version, licences, data attributions (DGT, CAOP, OpenStreetMap), privacy statement ("this app collects no data") | P0 |
 
 ### 3.2 Map
 
@@ -132,12 +132,13 @@ Priority: **P0** is required for v1, **P1** should ship in v1, **P2** comes late
 | MAP-6 | Tapping a property opens a bottom sheet (identifier name, process number, area, freguesia, group) with Details and Edit actions | P0 |
 | MAP-7 | **Download an area for offline use:** the user frames the area (at most 4 km², [ADR 0006](docs/adr/0006-offline-areas-up-to-4-km2.md)), chooses detail level (normal: up to z17, high: up to z19), sees the tile count and estimated size, then downloads. Downloads pause and resume across connection loss and app restarts | P0 |
 | MAP-8 | Manage offline areas: list, size, refresh, delete | P0 |
-| MAP-9 | Offline search box on the map: the user's properties by name or process number (IDN-6), plus places by freguesia, concelho or distrito name (from CAOP). Accent-insensitive ("sao joao" finds "São João") | P1 |
+| MAP-9 | Offline search box on the map: the user's properties by name or process number (IDN-6), plus places by freguesia, concelho or distrito name (from CAOP) and cities, towns, villages and hamlets (§6.3). Accent-insensitive ("sao joao" finds "São João"). Choosing a result moves the map there ([ADR 0010](docs/adr/0010-place-names-from-openstreetmap.md)) | P1 |
 | MAP-10 | Go to coordinates (WGS84 or PT-TM06) | P1 |
 | MAP-11 | Scale bar and compass/north reset | P1 |
 | MAP-12 | Measure tool for distance and area, without saving | P2 |
 | MAP-13 | Import a user-provided MBTiles imagery file (e.g. one exported from QGIS) as a layer | P2 |
 | MAP-14 | Share a downloaded offline area with a nearby phone (§9.3) | P2 |
+| MAP-15 | **Place names** on the map, bundled (§6.3): cities when zoomed out, then towns, villages and hamlets as the user zooms in, without overlapping. Can be turned off | P1 |
 
 ### 3.3 Boundary Capture
 
@@ -526,6 +527,16 @@ file. The user can choose to share it through the share sheet from the About scr
 - Used for: the map overlay, filling in location fields automatically (point-in-polygon on the
   property's interior point), and offline place search.
 - Attribution in About, with the CAOP edition year.
+
+### 6.3 Place names: OpenStreetMap (bundled)
+
+- Cities, towns, villages and hamlets of mainland Portugal from **OpenStreetMap** (ODbL 1.0),
+  extracted with `tool/build_places.dart` into `assets/places/places.json` (about 0.8 MB). Each
+  place records the CAOP freguesia it lies in ([ADR 0010](docs/adr/0010-place-names-from-openstreetmap.md)).
+- Used for the place names on the map (MAP-15) and for map search (MAP-9). Never written into
+  properties: location fields come from CAOP only.
+- The extract is a derivative database under the ODbL. "© OpenStreetMap" is shown on the map and
+  the full credit in About.
 
 ---
 
@@ -1060,6 +1071,7 @@ terrenos/
 ├── .github/                         # CI workflows, issue templates
 ├── android/                         # incl. Kotlin Nearby platform channel (prod flavour only)
 ├── assets/caop/                     # simplified CAOP GeoJSON + index
+├── assets/places/                   # OpenStreetMap place names (ODbL)
 ├── lib/
 │   ├── main.dart                    # one entry point; flavours in Gradle (ADR 0002)
 │   ├── app.dart
@@ -1070,6 +1082,7 @@ terrenos/
 │   │   ├── location/                # LocationSource, GPS averaging
 │   │   ├── storage/                 # PropertyStore, BlobStore, atomic file IO
 │   │   ├── map/                     # layers, TileStore, TileDownloader
+│   │   ├── places/                  # place names and offline place search
 │   │   ├── crdt/                    # HLC, registers, geometry DAG, merge
 │   │   ├── sync/                    # SyncEngine, protocol, transports
 │   │   ├── crypto/                  # keys, sync and backup file format
@@ -1086,8 +1099,9 @@ terrenos/
 │       ├── export/                  # GeoJSON, KML, Shapefile, PDF
 │       ├── backup/
 │       └── settings/
-├── docs/data-licences.md            # DGT orthophoto and CAOP licence terms + attribution
+├── docs/data-licences.md            # DGT, CAOP and OpenStreetMap licence terms + attribution
 ├── tool/build_caop.dart             # CAOP → simplified asset
+├── tool/build_places.dart           # OpenStreetMap places → asset
 ├── test/                            # unit, widget, golden, property-based
 ├── integration_test/
 └── test_fixtures/                   # KML/GeoJSON/GPX/SHP samples, PROJ reference points, CRDT scenarios
