@@ -8,6 +8,8 @@ import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/vertex.dart';
 import 'package:terrenos/features/editor/draw_map.dart';
+import 'package:terrenos/features/map/map_overlays.dart';
+import 'package:terrenos/features/map/place_labels.dart';
 
 import '../helpers/harness.dart';
 
@@ -108,6 +110,37 @@ void main() {
     expect(saved.geometry.current!.vertices, hasLength(3));
     // Saved, so there's nothing left to resume.
     expect(h.drafts.loadAll(), isEmpty);
+  });
+
+  testWidgets('draws over the same layers as the map tab', (tester) async {
+    final h = Harness(settings: onboarded);
+    await h.pump(tester);
+    await tester.pumpAndSettle();
+    await _openDraw(tester);
+    Finder inDrawMap(Type type) =>
+        find.descendant(of: find.byType(DrawMap), matching: find.byType(type));
+    expect(inDrawMap(AdminBoundariesLayer), findsOneWidget);
+    expect(inDrawMap(PlaceLabelsLayer), findsOneWidget);
+    expect(inDrawMap(Scalebar), findsOneWidget);
+    expect(find.text('Ortofotos © DGT 2025'), findsOneWidget);
+    expect(find.text('© OpenStreetMap'), findsOneWidget);
+
+    // The layers sheet is the map tab's; its switches apply here too.
+    await tester.tap(find.byTooltip('Map imagery'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Place names'));
+    await tester.pumpAndSettle();
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byType(PlaceLabelsLayer),
+        matching: find.byType(CustomPaint),
+      ),
+      findsNothing,
+    );
+    // Tapping the button didn't add a vertex.
+    expect(h.drafts.load(BoundaryDraft.newProperty), isNull);
   });
 
   testWidgets('drag, insert at a midpoint, delete and undo', (tester) async {

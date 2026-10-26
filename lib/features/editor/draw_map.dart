@@ -1,4 +1,5 @@
-/// Draw mode: the boundary on the map with handles (REG-1, REG-7, REG-10).
+/// Draw mode: the boundary on the map with handles (REG-1, REG-7, REG-10),
+/// over the same layers as the map tab.
 library;
 
 import 'package:flutter/material.dart';
@@ -8,12 +9,15 @@ import 'package:latlong2/latlong.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/core/geometry/geodesy.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
+import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/core/model/vertex.dart';
+import 'package:terrenos/core/places/places.dart';
 import 'package:terrenos/features/map/map_overlays.dart';
 import 'package:terrenos/features/map/map_page.dart';
 import 'package:terrenos/features/map/my_location.dart';
+import 'package:terrenos/features/map/place_labels.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
 
 /// Where a tap or drag ends up, and whether it snapped to a neighbour's
@@ -181,6 +185,7 @@ class _DrawMapState extends ConsumerState<DrawMap> {
                 userAgentPackageName: 'pt.terrenos.app',
               ),
               const AdminBoundariesLayer(),
+              const PlaceLabelsLayer(),
               _OtherProperties(except: widget.propertyId),
               const MyLocationLayer(),
               PolygonLayer(
@@ -227,6 +232,23 @@ class _DrawMapState extends ConsumerState<DrawMap> {
                   for (final ring in rings)
                     for (final v in ring) _vertex(v, l10n),
                 ],
+              ),
+              const Scalebar(alignment: Alignment.bottomLeft),
+              MapAttribution(
+                sources: ['$dgtAttribution ${source.year}', osmAttribution],
+              ),
+              Align(
+                alignment: Alignment.bottomRight,
+                // Above the attribution.
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 60),
+                  child: FloatingActionButton.small(
+                    heroTag: null,
+                    tooltip: l10n.mapImagery,
+                    onPressed: () => showMapLayers(context, ref),
+                    child: const Icon(Icons.layers_outlined),
+                  ),
+                ),
               ),
             ],
           ),

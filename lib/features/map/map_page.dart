@@ -92,7 +92,7 @@ class MapPage extends ConsumerWidget {
           IconButton(
             tooltip: l10n.mapImagery,
             icon: const Icon(Icons.layers_outlined),
-            onPressed: () => _chooseImagery(context, ref),
+            onPressed: () => showMapLayers(context, ref),
           ),
         ],
       ),
@@ -147,70 +147,73 @@ class MapPage extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Future<void> _chooseImagery(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context);
-    final current = ref.read(imagerySourceProvider);
-    final choice = await showModalBottomSheet<ImagerySource>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (context) => SafeArea(
-        child: SingleChildScrollView(
-          child: RadioGroup<ImagerySource>(
-            groupValue: current,
-            onChanged: (s) => Navigator.of(context).pop(s),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  title: Text(
-                    l10n.mapImagery,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+/// The layers sheet: which imagery, and whether the administrative
+/// boundaries and place names are drawn. Shared by the map tab and the
+/// boundary editor, so both maps show the same layers.
+Future<void> showMapLayers(BuildContext context, WidgetRef ref) async {
+  final l10n = AppLocalizations.of(context);
+  final current = ref.read(imagerySourceProvider);
+  final choice = await showModalBottomSheet<ImagerySource>(
+    context: context,
+    showDragHandle: true,
+    isScrollControlled: true,
+    builder: (context) => SafeArea(
+      child: SingleChildScrollView(
+        child: RadioGroup<ImagerySource>(
+          groupValue: current,
+          onChanged: (s) => Navigator.of(context).pop(s),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(
+                  l10n.mapImagery,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                RadioListTile(
-                  value: ImagerySource.ortos2025,
-                  title: Text(
-                    l10n.imageryLatest('${ImagerySource.ortos2025.year}'),
-                  ),
+              ),
+              RadioListTile(
+                value: ImagerySource.ortos2025,
+                title: Text(
+                  l10n.imageryLatest('${ImagerySource.ortos2025.year}'),
                 ),
-                RadioListTile(
-                  value: ImagerySource.ortos2018,
-                  title: Text(
-                    l10n.imageryPrevious('${ImagerySource.ortos2018.year}'),
-                  ),
-                  subtitle: Text(l10n.imageryPreviousHint),
+              ),
+              RadioListTile(
+                value: ImagerySource.ortos2018,
+                title: Text(
+                  l10n.imageryPrevious('${ImagerySource.ortos2018.year}'),
                 ),
-                const Divider(),
-                Consumer(
-                  builder: (context, ref, _) => SwitchListTile(
-                    title: Text(l10n.mapAdminBoundaries),
-                    subtitle: Text(l10n.mapAdminBoundariesHint),
-                    value: ref.watch(adminOverlayProvider),
-                    onChanged: (visible) => ref
-                        .read(adminOverlayProvider.notifier)
-                        .show(visible: visible),
-                  ),
+                subtitle: Text(l10n.imageryPreviousHint),
+              ),
+              const Divider(),
+              Consumer(
+                builder: (context, ref, _) => SwitchListTile(
+                  title: Text(l10n.mapAdminBoundaries),
+                  subtitle: Text(l10n.mapAdminBoundariesHint),
+                  value: ref.watch(adminOverlayProvider),
+                  onChanged: (visible) => ref
+                      .read(adminOverlayProvider.notifier)
+                      .show(visible: visible),
                 ),
-                Consumer(
-                  builder: (context, ref, _) => SwitchListTile(
-                    title: Text(l10n.mapPlaceNames),
-                    subtitle: Text(l10n.mapPlaceNamesHint),
-                    value: ref.watch(placeLabelsProvider),
-                    onChanged: (visible) => ref
-                        .read(placeLabelsProvider.notifier)
-                        .show(visible: visible),
-                  ),
+              ),
+              Consumer(
+                builder: (context, ref, _) => SwitchListTile(
+                  title: Text(l10n.mapPlaceNames),
+                  subtitle: Text(l10n.mapPlaceNamesHint),
+                  value: ref.watch(placeLabelsProvider),
+                  onChanged: (visible) => ref
+                      .read(placeLabelsProvider.notifier)
+                      .show(visible: visible),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-    if (choice != null) ref.read(imagerySourceProvider.notifier).select(choice);
-  }
+    ),
+  );
+  if (choice != null) ref.read(imagerySourceProvider.notifier).select(choice);
 }
 
 /// The user's properties on the map, labelled with their names (MAP-5).
