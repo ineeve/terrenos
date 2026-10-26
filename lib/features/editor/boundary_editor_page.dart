@@ -730,7 +730,6 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
                 )
                 .id;
           }),
-          onDelete: _delete,
         ),
         // The selected or dragged vertex's coordinates, live (REG-1).
         Positioned(

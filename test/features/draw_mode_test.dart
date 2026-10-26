@@ -173,6 +173,37 @@ void main() {
     expect(moved.lat, closeTo(first.lat, 1e-6));
   });
 
+  testWidgets('pressing and holding first, then dragging, moves it', (
+    tester,
+  ) async {
+    final h = Harness(settings: onboarded);
+    await h.pump(tester);
+    await tester.pumpAndSettle();
+    await _openDraw(tester);
+    await _drawTriangle(tester);
+    final first = _draftRing(h).first;
+    final centre = _camera(tester).center;
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(_vertex(first.id)),
+    );
+    // Well past the long-press time, as when placing it carefully.
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(RawMagnifier), findsOneWidget);
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(2, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    final ring = _draftRing(h);
+    expect(ring, hasLength(3));
+    expect(ring.first.id, first.id);
+    expect(ring.first.lon, greaterThan(first.lon));
+    expect(_camera(tester).center, centre);
+  });
+
   testWidgets('a slightly shaky tap still only selects', (tester) async {
     final h = Harness(settings: onboarded);
     await h.pump(tester);
@@ -233,8 +264,11 @@ void main() {
     // Stored to 7 decimals (SPEC.md §7.1).
     expect(ring[1].lon, closeTo((ring[0].lon + ring[2].lon) / 2, 1e-7));
 
-    // Long-press deletes.
+    // Holding a vertex selects it without deleting or moving it.
     await tester.longPress(_vertex(ring[1].id));
+    await tester.pumpAndSettle();
+    expect(_draftRing(h), ring);
+    await tester.tap(find.byTooltip('Delete vertex'));
     await tester.pumpAndSettle();
     expect(_draftRing(h), hasLength(3));
 

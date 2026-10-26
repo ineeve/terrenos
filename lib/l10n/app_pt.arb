@@ -193,7 +193,7 @@
   "actionSettings": "Definições",
   "drawVertex": "Vértice",
   "drawInsertVertex": "Adicionar um vértice aqui",
-  "drawHint": "Toque no mapa para adicionar vértices. Arraste um vértice para o mover; mantenha premido para o apagar.",
+  "drawHint": "Toque no mapa para adicionar vértices. Arraste um vértice para o mover, ou mantenha-o premido primeiro para o colocar com cuidado. Para apagar um, selecione-o e toque no caixote do lixo.",
   "drawSnapped": "Ajustado ao vértice de um vizinho",
   "editorShowMap": "Desenhar no mapa",
   "editorShowList": "Lista de vértices",

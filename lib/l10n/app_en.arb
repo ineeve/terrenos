@@ -360,7 +360,7 @@
   "actionSettings": "Settings",
   "drawVertex": "Vertex",
   "drawInsertVertex": "Add a vertex here",
-  "drawHint": "Tap the map to add vertices. Drag a vertex to move it; press and hold to delete it.",
+  "drawHint": "Tap the map to add vertices. Drag a vertex to move it, or press and hold it first to place it carefully. To delete one, select it and tap the bin.",
   "drawSnapped": "Snapped to a neighbour’s vertex",
   "editorShowMap": "Draw on the map",
   "editorShowList": "Vertex list",

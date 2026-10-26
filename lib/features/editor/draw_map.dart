@@ -2,8 +2,11 @@
 /// over the same layers as the map tab.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
@@ -14,6 +17,7 @@ import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
+import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/model/vertex.dart';
 import 'package:terrenos/core/places/places.dart';
 import 'package:terrenos/features/map/map_overlays.dart';
@@ -35,18 +39,21 @@ class DrawMap extends ConsumerStatefulWidget {
     required this.onDrag,
     required this.onMove,
     required this.onInsert,
-    required this.onDelete,
     this.propertyId,
     this.crossings = const [],
     this.track,
     super.key,
   });
+    this.track,
 
   /// The track being recorded in continuous walk mode (REG-3).
   final List<LocationFix>? track;
 
   /// The boundary as shown, including any vertex being dragged.
   final BoundaryParts parts;
+  /// The track being recorded in continuous walk mode (REG-3).
+  final List<LocationFix>? track;
+
   final String? selectedId;
 
   /// Edges drawn in red because they cross (VAL-2).
@@ -67,9 +74,6 @@ class DrawMap extends ConsumerStatefulWidget {
 
   /// Tapping the midpoint handle that follows vertex `afterId`.
   final void Function(String afterId, LonLat position) onInsert;
-
-  /// Long-press on a vertex.
-  final ValueChanged<String> onDelete;
 
   /// Snap within this distance on screen (REG-7).
   static const snapPixels = 10.0;
@@ -93,6 +97,10 @@ class _DrawMapState extends ConsumerState<DrawMap> {
 
   /// Finger position while dragging, for the loupe.
   Offset? _finger;
+
+  /// Where the finger was held down, when a drag began by holding: it may
+  /// end without moving at all.
+  Offset? _heldAt;
   String? _dragging;
 
   @override
@@ -224,6 +232,14 @@ class _DrawMapState extends ConsumerState<DrawMap> {
                   for (final c in widget.crossings)
                     for (final (a, b) in [c.first, c.second])
                       if ((byId[a], byId[b]) case (final va?, final vb?))
+                  if (widget.track case final track? when track.length >= 2)
+                    Polyline(
+                      points: [for (final f in track) LatLng(f.lat, f.lon)],
+                      color: Colors.cyanAccent,
+                      strokeWidth: 3,
+                      borderColor: Colors.black45,
+                      borderStrokeWidth: 1,
+                    ),
                         Polyline(
                           points: [
                             LatLng(va.lat, va.lon),
@@ -330,21 +346,23 @@ class _DrawMapState extends ConsumerState<DrawMap> {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => widget.onSelect(v.id),
-            onLongPress: () => widget.onDelete(v.id),
-            onPanStart: (details) {
-              setState(() {
-                _dragging = v.id;
-                _finger = _local(details.globalPosition);
-              });
-              widget.onSelect(v.id);
-            },
-            onPanUpdate: (details) {
-              final local = _local(details.globalPosition);
-              setState(() => _finger = local);
-              widget.onDrag(v.id, _at(local));
-            },
+            // Dragging straight away moves the vertex...
+            onPanStart: (details) => _startDrag(v.id, details.globalPosition),
+            onPanUpdate: (details) => _dragTo(v.id, details.globalPosition),
             onPanEnd: (_) => _endDrag(v.id),
             onPanCancel: () => _endDrag(v.id, commit: false),
+            // ...and so does pressing and holding first, as people do when
+            // they want to place it carefully. It buzzes when picked up.
+            onLongPressStart: (details) {
+              unawaited(HapticFeedback.selectionClick());
+              _startDrag(v.id, details.globalPosition, held: true);
+            },
+            onLongPressMoveUpdate: (details) =>
+                _dragTo(v.id, details.globalPosition),
+            onLongPressEnd: (_) => _endDrag(v.id),
+            onLongPressCancel: () {
+              if (_dragging == v.id) _endDrag(v.id, commit: false);
+            },
             child: Center(
               child: Container(
                 width: size,
@@ -368,14 +386,35 @@ class _DrawMapState extends ConsumerState<DrawMap> {
     );
   }
 
+  void _startDrag(String id, Offset global, {bool held = false}) {
+    final local = _local(global);
+    setState(() {
+      _dragging = id;
+      _finger = local;
+      _heldAt = held ? local : null;
+    });
+    widget.onSelect(id);
+  }
+
+  void _dragTo(String id, Offset global) {
+    final local = _local(global);
+    setState(() => _finger = local);
+    widget.onDrag(id, _at(local));
+  }
+
   void _endDrag(String id, {bool commit = true}) {
     final finger = _finger;
+    final heldAt = _heldAt;
     setState(() {
       _dragging = null;
-      _finger = null;
+      _finger = _heldAt = null;
     });
     widget.onDrag(id, null);
-    if (commit && finger != null) widget.onMove(id, _at(finger));
+    if (!commit || finger == null) return;
+    // Held and let go without moving: nothing changes, so a typed vertex
+    // keeps its exact input (SPEC.md §7.1).
+    if (heldAt != null && (finger - heldAt).distance < 1) return;
+    widget.onMove(id, _at(finger));
   }
 }
 
