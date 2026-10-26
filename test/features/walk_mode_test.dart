@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:terrenos/core/editing/boundary_draft.dart';
 import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/model/vertex.dart';
-import 'package:terrenos/features/editor/walk_panel.dart';
+import 'package:terrenos/features/editor/gps_capture.dart';
 
 import '../helpers/harness.dart';
 

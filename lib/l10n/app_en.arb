@@ -503,6 +503,87 @@
   "walkNotificationTitle": "Recording a boundary",
   "walkNotificationText": "Terrenos is using GPS while you walk the boundary.",
   "walkNotificationChannel": "Field recording",
+  "surveyAction": "Survey on site",
+  "surveyActionHint": "Stand on the marker and measure it with GPS",
+  "surveyTitle": "Survey {label}",
+  "@surveyTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "surveyHint": "Stand on the marker, hold the phone still and tap Measure.",
+  "surveyMeasure": "Measure",
+  "surveyResult": "Measured {distance} to the {direction} of the stored position · accuracy ±{metres} m",
+  "@surveyResult": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "direction": {
+        "type": "String"
+      },
+      "metres": {
+        "type": "int"
+      }
+    }
+  },
+  "surveySamePlace": "Measured at the stored position · accuracy ±{metres} m",
+  "@surveySamePlace": {
+    "placeholders": {
+      "metres": {
+        "type": "int"
+      }
+    }
+  },
+  "surveySuggestKeep": "Within the GPS accuracy, so keeping the stored position is suggested.",
+  "surveySuggestReplace": "Further away than the GPS accuracy, so replacing is suggested.",
+  "surveyImprecise": "The GPS is imprecise right now (±{metres} m). Consider measuring again.",
+  "@surveyImprecise": {
+    "placeholders": {
+      "metres": {
+        "type": "int"
+      }
+    }
+  },
+  "surveyMocked": "This position came from a simulated location. It will be marked as low confidence.",
+  "surveyReplace": "Replace",
+  "surveyKeep": "Keep",
+  "surveyRepeat": "Repeat",
+  "surveyStored": "{label}, stored position",
+  "@surveyStored": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "surveyMeasured": "Measured position",
+  "surveyKept": "{label} confirmed on site.",
+  "@surveyKept": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "surveyReplaced": "{label} moved to the measured position. The previous coordinates stay in the history.",
+  "@surveyReplaced": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "compassNorth": "north",
+  "compassNorthEast": "north-east",
+  "compassEast": "east",
+  "compassSouthEast": "south-east",
+  "compassSouth": "south",
+  "compassSouthWest": "south-west",
+  "compassWest": "west",
+  "compassNorthWest": "north-west",
   "@walkAfter": {
     "placeholders": {
       "label": {

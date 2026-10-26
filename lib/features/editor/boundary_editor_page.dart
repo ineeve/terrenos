@@ -20,6 +20,7 @@ import 'package:terrenos/features/editor/draw_map.dart';
 import 'package:terrenos/features/editor/walk_panel.dart';
 import 'package:terrenos/features/vertices/boundary_preview_map.dart';
 import 'package:terrenos/features/vertices/coordinate_entry_page.dart';
+import 'package:terrenos/features/vertices/survey_vertex_page.dart';
 import 'package:terrenos/features/vertices/vertex_format.dart';
 import 'package:terrenos/features/vertices/vertex_table.dart';
 import 'package:terrenos/l10n/gen/app_localizations.dart';
@@ -246,6 +247,47 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
     });
   }
 
+  /// Measures a vertex on site, then keeps or replaces its coordinates
+  /// (VTX-9). The previous coordinates stay in the boundary history.
+  Future<void> _survey(Vertex vertex) async {
+    final l10n = AppLocalizations.of(context);
+    final ring = _editor.ring(_ringOf(vertex.id));
+    final label = vertexLabel(ring.indexWhere((v) => v.id == vertex.id), null);
+    final outcome = await SurveyVertexPage.open(
+      context,
+      vertex: vertex,
+      label: label,
+      parts: _editor.parts,
+    );
+    if (outcome == null || !mounted) return;
+    final (:choice, :fix) = outcome;
+    final gps = fix.toGpsFix(ref.read(deviceProvider).deviceId);
+    _change(() {
+      switch (choice) {
+        case SurveyChoice.keep:
+          _editor.confirm(vertex.id, gps);
+        case SurveyChoice.replace:
+          _editor.move(
+            vertex.id,
+            (lon: fix.lon, lat: fix.lat),
+            source: VertexSource.gps,
+            gps: gps,
+          );
+      }
+      _selectedId = vertex.id;
+    });
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(switch (choice) {
+            SurveyChoice.keep => l10n.surveyKept(label),
+            SurveyChoice.replace => l10n.surveyReplaced(label),
+          }),
+        ),
+      );
+  }
+
   Future<void> _actions(Vertex vertex) async {
     final l10n = AppLocalizations.of(context);
     setState(() => _selectedId = vertex.id);
@@ -258,6 +300,12 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              ListTile(
+                leading: const Icon(Icons.gps_fixed),
+                title: Text(l10n.surveyAction),
+                subtitle: Text(l10n.surveyActionHint),
+                onTap: () => Navigator.of(context).pop('survey'),
+              ),
               ListTile(
                 leading: const Icon(Icons.edit_location_alt),
                 title: Text(l10n.vertexEditTitle),
@@ -275,6 +323,8 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
     );
     if (!mounted) return;
     switch (action) {
+      case 'survey':
+        await _survey(vertex);
       case 'edit':
         await _edit(vertex);
       case 'delete':
@@ -609,6 +659,12 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
                           Tooltip(
                             message: l10n.drawSnapped,
                             child: const Icon(Icons.join_inner),
+                          )
+                        else if (_drag == null)
+                          IconButton.filledTonal(
+                            tooltip: l10n.surveyAction,
+                            icon: const Icon(Icons.gps_fixed),
+                            onPressed: () => unawaited(_survey(focus!)),
                           ),
                       ],
                     ),
