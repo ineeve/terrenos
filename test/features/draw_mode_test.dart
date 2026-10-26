@@ -143,6 +143,57 @@ void main() {
     expect(h.drafts.load(BoundaryDraft.newProperty), isNull);
   });
 
+  testWidgets('a finger dragging a vertex moves it, not the map', (
+    tester,
+  ) async {
+    final h = Harness(settings: onboarded);
+    await h.pump(tester);
+    await tester.pumpAndSettle();
+    await _openDraw(tester);
+    await _drawTriangle(tester);
+    final first = _draftRing(h).first;
+    final centre = _camera(tester).center;
+
+    // A real finger moves a few pixels per event, so the map's drag
+    // (18 px slop) would claim it before a default pan (36 px).
+    final gesture = await tester.startGesture(
+      tester.getCenter(_vertex(first.id)),
+    );
+    for (var i = 0; i < 20; i++) {
+      await gesture.moveBy(const Offset(3, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(_camera(tester).center, centre);
+    final moved = _draftRing(h).first;
+    expect(moved.id, first.id);
+    expect(moved.lon, greaterThan(first.lon));
+    expect(moved.lat, closeTo(first.lat, 1e-6));
+  });
+
+  testWidgets('a slightly shaky tap still only selects', (tester) async {
+    final h = Harness(settings: onboarded);
+    await h.pump(tester);
+    await tester.pumpAndSettle();
+    await _openDraw(tester);
+    await _drawTriangle(tester);
+    final first = _draftRing(h).first;
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(_vertex(first.id)),
+    );
+    await gesture.moveBy(const Offset(2, 1));
+    await tester.pump(const Duration(milliseconds: 16));
+    await gesture.moveBy(const Offset(2, -1));
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(_draftRing(h).first.lon, first.lon);
+    expect(find.text('V1'), findsOneWidget);
+  });
+
   testWidgets('drag, insert at a midpoint, delete and undo', (tester) async {
     final h = Harness(settings: onboarded);
     await h.pump(tester);

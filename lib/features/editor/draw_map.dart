@@ -2,6 +2,7 @@
 /// over the same layers as the map tab.
 library;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -71,6 +72,11 @@ class DrawMap extends ConsumerStatefulWidget {
   /// Visible handle size and the larger area that responds to touch.
   static const handleSize = 16.0;
   static const touchSize = 44.0;
+
+  /// A drag that starts on a vertex moves the vertex once the finger has
+  /// gone twice this far (12 px). flutter_map starts panning after 18 px,
+  /// so with the default 36 px the map always won (REG-1).
+  static const handleTouchSlop = 6.0;
 
   @override
   ConsumerState<DrawMap> createState() => _DrawMapState();
@@ -301,38 +307,46 @@ class _DrawMapState extends ConsumerState<DrawMap> {
         button: true,
         selected: selected,
         label: l10n.drawVertex,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => widget.onSelect(v.id),
-          onLongPress: () => widget.onDelete(v.id),
-          onPanStart: (details) {
-            setState(() {
-              _dragging = v.id;
-              _finger = _local(details.globalPosition);
-            });
-            widget.onSelect(v.id);
-          },
-          onPanUpdate: (details) {
-            final local = _local(details.globalPosition);
-            setState(() => _finger = local);
-            widget.onDrag(v.id, _at(local));
-          },
-          onPanEnd: (_) => _endDrag(v.id),
-          onPanCancel: () => _endDrag(v.id, commit: false),
-          child: Center(
-            child: Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                color: selected ? Colors.orangeAccent : fill,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: v.isSurveyed ? Colors.black : Colors.black87,
-                  width: v.isSurveyed ? 2 : 3,
+        // GestureDetector takes its pan slop from here.
+        child: MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            gestureSettings: const DeviceGestureSettings(
+              touchSlop: DrawMap.handleTouchSlop,
+            ),
+          ),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => widget.onSelect(v.id),
+            onLongPress: () => widget.onDelete(v.id),
+            onPanStart: (details) {
+              setState(() {
+                _dragging = v.id;
+                _finger = _local(details.globalPosition);
+              });
+              widget.onSelect(v.id);
+            },
+            onPanUpdate: (details) {
+              final local = _local(details.globalPosition);
+              setState(() => _finger = local);
+              widget.onDrag(v.id, _at(local));
+            },
+            onPanEnd: (_) => _endDrag(v.id),
+            onPanCancel: () => _endDrag(v.id, commit: false),
+            child: Center(
+              child: Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  color: selected ? Colors.orangeAccent : fill,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: v.isSurveyed ? Colors.black : Colors.black87,
+                    width: v.isSurveyed ? 2 : 3,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(blurRadius: 3, color: Colors.black38),
+                  ],
                 ),
-                boxShadow: const [
-                  BoxShadow(blurRadius: 3, color: Colors.black38),
-                ],
               ),
             ),
           ),
