@@ -84,6 +84,20 @@ class BoundaryEditor {
     return vertex;
   }
 
+  /// Adds several vertices at the end of the ring as one undo step, e.g.
+  /// from a recorded track (REG-3).
+  List<Vertex> addAll(
+    List<({LonLat position, GpsFix? gps})> points, {
+    required VertexSource source,
+    RingRef ref = outerRing,
+  }) {
+    final vertices = [
+      for (final p in points) _newVertex(p.position, source, gps: p.gps),
+    ];
+    _edit(ref, (ring) => ring.addAll(vertices));
+    return vertices;
+  }
+
   /// Inserts a vertex into the edge nearest to [position] (VTX-8 option
   /// "into the nearest edge"). With fewer than 3 vertices it is appended.
   Vertex insertIntoNearestEdge(

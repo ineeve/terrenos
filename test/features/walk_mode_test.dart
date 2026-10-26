@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:terrenos/core/editing/boundary_draft.dart';
 import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/model/vertex.dart';
+import 'package:terrenos/features/editor/draw_map.dart';
 import 'package:terrenos/features/editor/gps_capture.dart';
 
 import '../helpers/harness.dart';
@@ -215,5 +216,125 @@ void main() {
       await tester.pumpAndSettle();
       expect(_indicatorColour(tester), colour, reason: '$accuracy m');
     }
+  });
+
+  group('continuous (REG-3)', () {
+    /// Walks a 20 m square from 40.2 N, 8.43 W, one fix a second, 2.5 m
+    /// apart.
+    Future<void> walkSquare(WidgetTester tester, Harness h) async {
+      for (final (dx, dy) in const [(1, 0), (0, 1), (-1, 0), (0, -1)]) {
+        for (var i = 0; i < 8; i++) {
+          final east =
+              (dx == 0 ? (dy > 0 ? 20 : 0) : (dx > 0 ? 0 : 20)) + dx * 2.5 * i;
+          final north =
+              (dy == 0 ? (dx > 0 ? 0 : 20) : (dy > 0 ? 0 : 20)) + dy * 2.5 * i;
+          h.location.emit(_fix(40.2 + north / 111040, -8.43 + east / 85120));
+          await tester.pump(const Duration(seconds: 1));
+        }
+      }
+    }
+
+    Future<Harness> openTrack(WidgetTester tester) async {
+      usePhoneScreen(tester);
+      final h = Harness(settings: onboarded);
+      h.location.current = LocationAccess.granted;
+      await h.pump(tester);
+      await tester.pumpAndSettle();
+      await _openWalk(tester);
+      await tester.tap(find.text('Continuous'));
+      await tester.pumpAndSettle();
+      return h;
+    }
+
+    testWidgets('records a track and adds it simplified', (tester) async {
+      final h = await openTrack(tester);
+      expect(find.textContaining('every 2 m or 5 seconds'), findsOneWidget);
+      await tester.tap(find.text('Start recording'));
+      await tester.pump();
+      await walkSquare(tester, h);
+      expect(find.text('32 points · 78 m'), findsOneWidget);
+      expect(find.byType(DrawMap), findsOneWidget);
+      // The track is drawn as it grows.
+      final map = tester.widget<DrawMap>(find.byType(DrawMap));
+      expect(map.track, hasLength(32));
+      // Recording can't be left by accident.
+      expect(
+        tester
+            .widget<IconButton>(
+              find.widgetWithIcon(IconButton, Icons.directions_walk),
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(find.text('Stop walking'), findsOneWidget);
+      expect(
+        tester
+            .widget<TextButton>(find.widgetWithText(TextButton, 'Stop walking'))
+            .onPressed,
+        isNull,
+      );
+
+      await tester.tap(find.text('Finish'));
+      await tester.pumpAndSettle();
+      expect(find.text('32 points recorded → 4 vertices'), findsOneWidget);
+      await tester.tap(find.text('0.5 m'));
+      await tester.pumpAndSettle();
+      expect(find.text('32 points recorded → 4 vertices'), findsOneWidget);
+      await tester.tap(find.text('Add vertices'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('4 vertices added from the track.'), findsOneWidget);
+      final ring = _ring(h);
+      expect(ring, hasLength(4));
+      expect(ring.every((v) => v.source == VertexSource.gps), isTrue);
+      expect(ring.every((v) => v.gps!.samples == 1), isTrue);
+      expect(ring.first.lat, closeTo(40.2, 1e-7));
+      expect(tester.widget<DrawMap>(find.byType(DrawMap)).track, isNull);
+
+      // One undo step removes the whole track.
+      await tester.tap(find.byTooltip('Undo'));
+      await tester.pumpAndSettle();
+      expect(h.drafts.load(BoundaryDraft.newProperty), isNull);
+    });
+
+    testWidgets('imprecise positions are left out and counted', (tester) async {
+      final h = await openTrack(tester);
+      await tester.tap(find.text('Start recording'));
+      await tester.pump();
+      h.location.emit(_fix(40.2, -8.43));
+      await tester.pump(const Duration(seconds: 1));
+      h.location.emit(_fix(40.2001, -8.43, accuracy: 30));
+      await tester.pump(const Duration(seconds: 1));
+      expect(
+        find.text('1 point · 0.0 m · 1 imprecise position left out'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('too short a track adds nothing', (tester) async {
+      final h = await openTrack(tester);
+      await tester.tap(find.text('Start recording'));
+      await tester.pump();
+      h.location.emit(_fix(40.2, -8.43));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.tap(find.text('Finish'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Too few points'), findsOneWidget);
+      expect(h.drafts.load(BoundaryDraft.newProperty), isNull);
+      expect(find.text('Start recording'), findsOneWidget);
+    });
+
+    testWidgets('a track can be discarded', (tester) async {
+      final h = await openTrack(tester);
+      await tester.tap(find.text('Start recording'));
+      await tester.pump();
+      await walkSquare(tester, h);
+      await tester.tap(find.text('Finish'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+      expect(h.drafts.load(BoundaryDraft.newProperty), isNull);
+      expect(tester.widget<DrawMap>(find.byType(DrawMap)).track, isNull);
+    });
   });
 }

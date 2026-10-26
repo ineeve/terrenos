@@ -299,5 +299,19 @@
   "goToArrived": "Chegou a {label}",
   "goToNoCompass": "Sem bússola: a seta indica a direção em relação ao norte, no topo do ecrã.",
   "goToCalibrate": "A bússola está imprecisa. Mova o telemóvel num movimento em forma de 8 para a calibrar.",
-  "surveyNextVertex": "Levantar próximo vértice ({label})"
+  "surveyNextVertex": "Levantar próximo vértice ({label})",
+  "walkModePoints": "Por pontos",
+  "walkModeTrack": "Contínuo",
+  "trackHint": "Percorra o limite. É registado um ponto a cada 2 m ou 5 segundos.",
+  "trackStart": "Começar a gravar",
+  "trackFinish": "Terminar",
+  "trackProgress": "{points, plural, =1{1 ponto} other{{points} pontos}} · {length}",
+  "trackSkipped": "{count, plural, =1{1 posição imprecisa ignorada} other{{count} posições imprecisas ignoradas}}",
+  "trackTooShort": "Foram registados poucos pontos para formar um limite.",
+  "trackReviewTitle": "Simplificar o percurso",
+  "trackReviewBody": "{points} pontos registados → {vertices} vértices",
+  "trackTolerance": "Tolerância",
+  "trackToleranceHint": "Os pontos mais próximos do que isto da linha entre os vizinhos são retirados. Uma tolerância maior dá menos vértices.",
+  "trackAdd": "Adicionar vértices",
+  "trackAdded": "{count} vértices adicionados a partir do percurso."
 }

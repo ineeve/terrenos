@@ -635,6 +635,54 @@
       }
     }
   },
+  "walkModePoints": "By points",
+  "walkModeTrack": "Continuous",
+  "trackHint": "Walk along the boundary. A point is recorded every 2 m or 5 seconds.",
+  "trackStart": "Start recording",
+  "trackFinish": "Finish",
+  "trackProgress": "{points, plural, =1{1 point} other{{points} points}} · {length}",
+  "@trackProgress": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "length": {
+        "type": "String"
+      }
+    }
+  },
+  "trackSkipped": "{count, plural, =1{1 imprecise position left out} other{{count} imprecise positions left out}}",
+  "@trackSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trackTooShort": "Too few points were recorded to make a boundary.",
+  "trackReviewTitle": "Simplify the track",
+  "trackReviewBody": "{points} points recorded → {vertices} vertices",
+  "@trackReviewBody": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "vertices": {
+        "type": "int"
+      }
+    }
+  },
+  "trackTolerance": "Tolerance",
+  "trackToleranceHint": "Points closer than this to the line between their neighbours are left out. A larger tolerance gives fewer vertices.",
+  "trackAdd": "Add vertices",
+  "trackAdded": "{count} vertices added from the track.",
+  "@trackAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "@walkAfter": {
     "placeholders": {
       "label": {

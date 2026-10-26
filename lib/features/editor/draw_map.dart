@@ -10,6 +10,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:terrenos/app/providers.dart';
 import 'package:terrenos/core/geometry/geodesy.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
+import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/map/imagery.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
@@ -37,8 +38,12 @@ class DrawMap extends ConsumerStatefulWidget {
     required this.onDelete,
     this.propertyId,
     this.crossings = const [],
+    this.track,
     super.key,
   });
+
+  /// The track being recorded in continuous walk mode (REG-3).
+  final List<LocationFix>? track;
 
   /// The boundary as shown, including any vertex being dragged.
   final BoundaryParts parts;
@@ -208,6 +213,14 @@ class _DrawMapState extends ConsumerState<DrawMap> {
               ),
               PolylineLayer(
                 polylines: [
+                  if (widget.track case final track? when track.length >= 2)
+                    Polyline(
+                      points: [for (final f in track) LatLng(f.lat, f.lon)],
+                      color: Colors.cyanAccent,
+                      strokeWidth: 3,
+                      borderColor: Colors.black45,
+                      borderStrokeWidth: 1,
+                    ),
                   for (final c in widget.crossings)
                     for (final (a, b) in [c.first, c.second])
                       if ((byId[a], byId[b]) case (final va?, final vb?))

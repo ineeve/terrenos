@@ -67,6 +67,24 @@ void main() {
       );
     });
 
+    test('adds a whole track as one undo step (REG-3)', () {
+      final e = _square();
+      final added = e.addAll([
+        (position: (lon: -8.4310, lat: 40.2010), gps: _fix()),
+        (position: (lon: -8.4310, lat: 40.2000), gps: _fix(accuracy: 6)),
+      ], source: VertexSource.gps);
+      expect(e.ring(), hasLength(6));
+      expect(e.ring().sublist(4), added);
+      expect(added.map((v) => v.source), everyElement(VertexSource.gps));
+      expect(added.last.gps!.accuracyMetres, 6);
+      expect(
+        added.map((v) => v.id).toSet().intersection(_ids(e).take(4).toSet()),
+        isEmpty,
+      );
+      e.undo();
+      expect(e.ring(), hasLength(4));
+    });
+
     test('inserts into the nearest edge', () {
       final e = _square();
       final ids = _ids(e);

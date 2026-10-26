@@ -12,6 +12,7 @@ import 'package:terrenos/core/format/area_format.dart';
 import 'package:terrenos/core/geometry/geometry_service.dart';
 import 'package:terrenos/core/geometry/validation.dart';
 import 'package:terrenos/core/location/gps_averaging.dart';
+import 'package:terrenos/core/location/location_source.dart';
 import 'package:terrenos/core/model/documents.dart';
 import 'package:terrenos/core/model/geometry_history.dart';
 import 'package:terrenos/core/model/vertex.dart';
@@ -58,6 +59,10 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
   late bool _walking = widget.startWalking;
   late bool _dirty = _resumed != null;
   String? _selectedId;
+
+  /// The track being recorded in continuous walk mode (REG-3); `null`
+  /// when not recording.
+  List<LocationFix>? _track;
 
   /// Edges that crossed when saving was last tried (VAL-2).
   List<Crossing> _crossings = const [];
@@ -152,6 +157,32 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
   }
 
   /// Adds a point captured in walk mode (REG-2, VTX-8).
+  /// Adds a recorded and simplified track at the end of the boundary, as
+  /// one undo step (REG-3).
+  void _addTrack(List<LocationFix> track) {
+    final l10n = AppLocalizations.of(context);
+    final deviceId = ref.read(deviceProvider).deviceId;
+    _change(() {
+      final added = _editor.addAll([
+        for (final fix in track)
+          (
+            position: (lon: fix.lon, lat: fix.lat),
+            gps: GpsFix(
+              accuracyMetres: fix.accuracyMetres,
+              samples: 1,
+              capturedAt: fix.at,
+              mocked: fix.mocked,
+              deviceId: deviceId,
+            ),
+          ),
+      ], source: VertexSource.gps);
+      _selectedId = added.last.id;
+    });
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.trackAdded(track.length))));
+  }
+
   void _capture(AveragedFix fix, InsertAt at) {
     final l10n = AppLocalizations.of(context);
     final gps = fix.toGpsFix(ref.read(deviceProvider).deviceId);
@@ -483,7 +514,8 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
     final small = Theme.of(context).textTheme.bodySmall;
 
     return PopScope(
-      canPop: !_dirty,
+      // A track being recorded isn't in the draft yet.
+      canPop: !_dirty && _track == null,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) unawaited(_confirmLeave());
       },
@@ -539,15 +571,21 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
               tooltip: _walking ? l10n.walkStop : l10n.walkStart,
               isSelected: _walking,
               icon: const Icon(Icons.directions_walk),
-              onPressed: () => setState(() {
-                _walking = !_walking;
-                if (_walking) _onMap = true;
-              }),
+              // Recording stops with the walk panel, so not while a track
+              // is being recorded.
+              onPressed: _track != null
+                  ? null
+                  : () => setState(() {
+                      _walking = !_walking;
+                      if (_walking) _onMap = true;
+                    }),
             ),
             IconButton(
               tooltip: _onMap ? l10n.editorShowList : l10n.editorShowMap,
               icon: Icon(_onMap ? Icons.list_alt : Icons.map_outlined),
-              onPressed: () => setState(() => _onMap = !_onMap),
+              onPressed: _track != null
+                  ? null
+                  : () => setState(() => _onMap = !_onMap),
             ),
           ],
         ),
@@ -597,6 +635,8 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
                 WalkPanel(
                   selectedLabel: _selectedLabel,
                   onCapture: _capture,
+                  onTrack: _addTrack,
+                  onTrackChanged: (track) => setState(() => _track = track),
                   onStop: () => setState(() => _walking = false),
                 )
               // In the field, for a saved property; not while drawing a
@@ -669,6 +709,7 @@ class _BoundaryEditorPageState extends ConsumerState<BoundaryEditorPage> {
       children: [
         DrawMap(
           parts: shown,
+          track: _track,
           selectedId: _selectedId,
           crossings: _crossings,
           propertyId: widget.propertyId,
